@@ -8,7 +8,7 @@ const classroom = new mongoose.Schema({
         {
             firstname: String,
             lastname: String,
-            mail: String,
+            email: String,
         }
     ],
     subject: [
@@ -58,3 +58,7 @@ const classroom = new mongoose.Schema({
         }
     ]
 });
+
+
+const model : mongoose.Model<any>= mongoose.model("classroom", classroom);
+export default model

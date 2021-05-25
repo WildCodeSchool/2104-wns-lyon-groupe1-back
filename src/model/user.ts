@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 
 const user = new mongoose.Schema({
-    lastname: String,
-    mail: String,
+    email: String,
     firstname: String,
+    lastname: String,
     password: String,
     token: String,
     isTeacher: Boolean,
@@ -14,5 +14,7 @@ const user = new mongoose.Schema({
             year : String
         }
     ]
-
 });
+
+const model : mongoose.Model<any>= mongoose.model("users", user);
+export default model;
