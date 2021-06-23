@@ -4,28 +4,26 @@ import express from 'express';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import { ApolloServer } from 'apollo-server-express';
-import { buildSchema } from "type-graphql";
-import { GraphQLSchema } from "graphql";
-import mongoose from "mongoose";
-import config from "../.env.dev"
-import userAuth from "./controller/UserAuth";
-
+import { buildSchema } from 'type-graphql';
+import { GraphQLSchema } from 'graphql';
+import mongoose from 'mongoose';
+import config from '../.env.dev';
+import UserAuth from './controller/UserAuth';
 
 dotenv.config();
-// const devEnv = config;
-
 const initialize = async () => {
-
   //Connect to database===================================
-  mongoose.connect(config.db, config.options)
-    .then(() => { console.log("MongoDb started") })
+  mongoose
+    .connect(config.db, config.options)
+    .then(() => {
+      console.log('MongoDb started');
+    })
     .catch((error) => {
       console.log(error);
-    })
+    });
   //Connect to database===================================
 
-
-  const app = express();
+  const app: express.Application = express();
 
   //TODO do not forget to not allow * here
   app.use(cors({ origin: '*' }));
@@ -35,23 +33,20 @@ const initialize = async () => {
   app.use(express.urlencoded({ extended: true }));
 
   app.use(morgan('dev'));
+  const schema: GraphQLSchema = await buildSchema({
+    resolvers: [UserAuth],
+  });
 
-  const schema: GraphQLSchema = await buildSchema(
-    {
-      resolvers: [userAuth]
+  const server = new ApolloServer({
+    schema,
+    context: async ({ req }) => {
+      const context = {
+        req,
+        user: req.header('auth-token'),
+      };
+      return context;
     },
-  )
-
- /*  const server = new ApolloServer(
-    {
-      schema
-        //putting req & res in ApolloServer onctext will let us access them globally in resolvers
-      // context: ({ req, res }) => ({ req, res })
-    },
-  ); */
-
-  const server = new ApolloServer({schema});
-
+  });
 
   await server.start();
   server.applyMiddleware({ app, path: '/' });
@@ -62,4 +57,3 @@ const initialize = async () => {
 };
 
 initialize();
-
