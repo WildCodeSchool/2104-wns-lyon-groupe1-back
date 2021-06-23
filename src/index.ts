@@ -23,6 +23,7 @@ const initialize = async () => {
     });
   //Connect to database===================================
 
+
   const app: express.Application = express();
 
   //TODO do not forget to not allow * here
@@ -37,12 +38,14 @@ const initialize = async () => {
     resolvers: [UserAuth],
   });
 
+ 
   const server = new ApolloServer({
     schema,
     context: async ({ req }) => {
       const context = {
         req,
-        user: req.header('auth-token'),
+        user: req.header('auth-token') || '',
+        user_id : ''
       };
       return context;
     },

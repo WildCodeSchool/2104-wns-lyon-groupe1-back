@@ -8,7 +8,6 @@ import {
   Mutation,
   Ctx,
   UseMiddleware,
-  Authorized,
 } from 'type-graphql';
 import User from '../model/graphql/user';
 import { ApolloError, AuthenticationError } from 'apollo-server-express';
@@ -118,7 +117,7 @@ export default class UserAuth {
       const hashedPassword = await bcrypt.hash(newPassword, salt);
       try {
         const user = userModel.findOneAndUpdate(
-          { _id: context.user },
+          { _id: context.user_id },
           { $set: { password: hashedPassword } },
         );
         return user;
@@ -131,11 +130,5 @@ export default class UserAuth {
         'Password error : Minimum eight characters, at least one letter, one number and one special characte',
       );
     }
-  }
-
-  @UseMiddleware(isAuth)
-  @Query((returns) => String)
-  public async hello() {
-    return 'hello world';
   }
 }
