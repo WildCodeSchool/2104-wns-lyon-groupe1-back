@@ -8,7 +8,7 @@ import { buildSchema } from "type-graphql";
 import { GraphQLSchema } from "graphql";
 import mongoose from "mongoose";
 import config from "../.env.dev"
-import userAuthResolver from "./controller/UserAuthResolver";
+import userAuth from "./controller/UserAuth";
 
 
 dotenv.config();
@@ -38,18 +38,19 @@ const initialize = async () => {
 
   const schema: GraphQLSchema = await buildSchema(
     {
-      resolvers: [userAuthResolver]
+      resolvers: [userAuth]
     },
   )
 
-  const server = new ApolloServer(
+ /*  const server = new ApolloServer(
     {
       schema
         //putting req & res in ApolloServer onctext will let us access them globally in resolvers
       // context: ({ req, res }) => ({ req, res })
     },
-  );
+  ); */
 
+  const server = new ApolloServer({schema});
 
 
   await server.start();
