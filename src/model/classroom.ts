@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 
-const classroom = new mongoose.Schema({
+const classrooms = new mongoose.Schema({
     name: String,
     year: String,
     student: [
@@ -60,5 +60,5 @@ const classroom = new mongoose.Schema({
 });
 
 
-const model : mongoose.Model<any>= mongoose.model("classroom", classroom);
+const model : mongoose.Model<any>= mongoose.model("classrooms", classrooms);
 export default model

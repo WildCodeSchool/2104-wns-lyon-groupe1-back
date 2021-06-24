@@ -1,14 +1,16 @@
-import { Field, ID, Mutation, ObjectType, UseMiddleware } from 'type-graphql';
-
+import { Field, ObjectType, ID } from 'type-graphql';
 
 @ObjectType()
 export default class ClassroomModelGQL {
-  @Field()
-  name : string = '';
+  @Field((type) => ID)
+  _id : string = ''
 
   @Field()
-  academicYear: string = '';
+  name: string = '';
 
   @Field()
-  student! : [string]
+  year: string = '';
+
+  @Field((type) => [String])
+  studentEmails!: [string]
 }

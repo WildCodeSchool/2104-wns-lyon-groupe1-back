@@ -8,8 +8,8 @@ import { buildSchema } from 'type-graphql';
 import { GraphQLSchema } from 'graphql';
 import mongoose from 'mongoose';
 import config from '../.env.dev';
-import UserAuth from './controller/UserAuth';
-import CalssroomController from './controller/ClassroomResolver';
+import UserAuthResolver from './controller/UserAuthResolver';
+import ClassroomResolver from './controller/ClassroomResolver';
 
 dotenv.config();
 const initialize = async () => {
@@ -35,7 +35,8 @@ const initialize = async () => {
 
   app.use(morgan('dev'));
   const schema: GraphQLSchema = await buildSchema({
-    resolvers: [UserAuth, CalssroomController],
+    validate: false,
+    resolvers: [UserAuthResolver, ClassroomResolver],
   });
 
   const server = new ApolloServer({ schema });

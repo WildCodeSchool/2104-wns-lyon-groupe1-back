@@ -9,12 +9,8 @@ import {
 import UserModelGQL from '../model/graphql/userModelGQL';
 import { ApolloError } from 'apollo-server-express';
 
-//TODO récupere une liste des éleves
-//TODO mutation ajouter un eleve
-//TODO mutation ajouter une promotion
-
 @Resolver(UserModelGQL)
-export default class UserAuth {
+export default class UserAuthResolver {
 
   //get user by id, @@@ don't delete this, because we should have at least one query in a resolver @@
   @Query((returns) => UserModelGQL)
@@ -22,7 +18,6 @@ export default class UserAuth {
     const user = userModel.findOne({_id : user_id});
     return user;
   }
-
 
   //TODO user change password
   //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
