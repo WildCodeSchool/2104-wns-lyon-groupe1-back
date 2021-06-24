@@ -19,14 +19,6 @@ import { isAuth } from '../middleware/isAuth';
 
 @Resolver(User)
 export default class UserAuth {
-  //get user by email
-  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-  @Query((returns) => User, { nullable: true })
-  public async getUserByEmail(@Arg('email', (type) => String) email: string) {
-    const user = await userModel.findOne({ email: email });
-    return user;
-  }
-
   //check by email if user already exists, if yes return true, otherwise return false
   //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   private async userExists(email: string) {
@@ -34,6 +26,14 @@ export default class UserAuth {
     if (userExist) {
       throw new AuthenticationError('User already exist');
     }
+  }
+
+  //get user by email
+  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  @Query((returns) => User, { nullable: true })
+  public async getUserByEmail(@Arg('email', (type) => String) email: string) {
+    const user = await userModel.findOne({ email: email });
+    return user;
   }
 
   //user professor
@@ -46,8 +46,6 @@ export default class UserAuth {
     @Arg('lastname') lastname: string,
     @Arg('password') password: string,
   ) {
-
-    console.log("aze");
     //verify by email if user exists
     await this.userExists(email);
 

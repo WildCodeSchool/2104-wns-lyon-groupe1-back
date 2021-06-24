@@ -9,6 +9,7 @@ import { GraphQLSchema } from 'graphql';
 import mongoose from 'mongoose';
 import config from '../.env.dev';
 import UserAuth from './controller/UserAuth';
+import CalssroomController from './controller/ClassroomController';
 
 dotenv.config();
 const initialize = async () => {
@@ -23,7 +24,6 @@ const initialize = async () => {
     });
   //Connect to database===================================
 
-
   const app: express.Application = express();
 
   //TODO do not forget to not allow * here
@@ -35,17 +35,16 @@ const initialize = async () => {
 
   app.use(morgan('dev'));
   const schema: GraphQLSchema = await buildSchema({
-    resolvers: [UserAuth],
+    resolvers: [UserAuth, CalssroomController],
   });
 
- 
   const server = new ApolloServer({
     schema,
     context: async ({ req }) => {
       const context = {
         req,
         user: req.header('auth-token') || '',
-        user_id : ''
+        user_id: '',
       };
       return context;
     },
