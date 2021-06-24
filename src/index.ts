@@ -9,7 +9,7 @@ import { GraphQLSchema } from 'graphql';
 import mongoose from 'mongoose';
 import config from '../.env.dev';
 import UserAuth from './controller/UserAuth';
-import CalssroomController from './controller/ClassroomController';
+import CalssroomController from './controller/ClassroomResolver';
 
 dotenv.config();
 const initialize = async () => {
@@ -38,17 +38,7 @@ const initialize = async () => {
     resolvers: [UserAuth, CalssroomController],
   });
 
-  const server = new ApolloServer({
-    schema,
-    context: async ({ req }) => {
-      const context = {
-        req,
-        user: req.header('auth-token') || '',
-        user_id: '',
-      };
-      return context;
-    },
-  });
+  const server = new ApolloServer({ schema });
 
   await server.start();
   server.applyMiddleware({ app, path: '/' });

@@ -1,110 +1,35 @@
 import bcrypt from 'bcrypt';
 import userModel from '../model/user';
-import jwt from 'jsonwebtoken';
 import {
   Resolver,
-  Query,
   Arg,
   Mutation,
-  Ctx,
-  UseMiddleware,
+  Query
 } from 'type-graphql';
-import User from '../model/graphql/user';
-import { ApolloError, AuthenticationError } from 'apollo-server-express';
-import { isAuth } from '../middleware/isAuth';
+import UserModelGQL from '../model/graphql/userModelGQL';
+import { ApolloError } from 'apollo-server-express';
 
 //TODO récupere une liste des éleves
 //TODO mutation ajouter un eleve
 //TODO mutation ajouter une promotion
 
-@Resolver(User)
+@Resolver(UserModelGQL)
 export default class UserAuth {
-  //check by email if user already exists, if yes return true, otherwise return false
-  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-  private async userExists(email: string) {
-    const userExist = await userModel.findOne({ email: email });
-    if (userExist) {
-      throw new AuthenticationError('User already exist');
-    }
-  }
 
-  //get user by email
-  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-  @Query((returns) => User, { nullable: true })
-  public async getUserByEmail(@Arg('email', (type) => String) email: string) {
-    const user = await userModel.findOne({ email: email });
+  //get user by id, @@@ don't delete this, because we should have at least one query in a resolver @@
+  @Query((returns) => UserModelGQL)
+  public async getUser(@Arg('user_id') user_id : string){
+    const user = userModel.findOne({_id : user_id});
     return user;
   }
 
-  //user professor
-  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-  @Mutation((returns) => User)
-  public async registerTeacher(
-    @Arg('email') email: string,
-    @Arg('firstname') firstname: string,
-    @Arg('lastname') lastname: string,
-    @Arg('password') password: string,
-  ) {
-    //verify by email if user exists
-    await this.userExists(email);
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    await userModel.init();
-    const body: any = {
-      email: email,
-      firstname: firstname,
-      lastname: lastname,
-      password: hashedPassword,
-      isTeacher: true,
-    };
-    const model = new userModel(body);
-    const result = await model.save();
-    return result;
-  }
-
-  //user signin, if successfull return a token
-  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-  @Query((returns) => String)
-  public async userLogin(
-    @Arg('email') email: string,
-    @Arg('password') password: string,
-  ) {
-    //check if user already exists
-    const user = await userModel.findOne({ email: email });
-    if (!user) {
-      throw new ApolloError('Wrong email or password');
-    }
-    //check if password is valid
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      throw new AuthenticationError('Wrong email or password');
-    }
-    //sign a token
-    const user_id = user._id;
-    const token = jwt.sign(user_id.toJSON(), process.env.TOKEN_SECRET || '');
-
-    try {
-      await userModel.findOneAndUpdate(
-        { _id: user._id },
-        { $set: { token: token } },
-      );
-    } catch (error) {
-      throw new ApolloError('Error while signing a JWT');
-    }
-    //TODO push token into database
-    return token;
-  }
 
   //TODO user change password
   //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-  @UseMiddleware(isAuth)
-  @Mutation((returns) => User)
+  @Mutation((returns) => UserModelGQL)
   public async changePassword(
-    @Ctx() context: any,
-    @Arg('newPassword', (type) => String) newPassword: string,
+    @Arg('user_id') user_id : string,
+    @Arg('newPassword') newPassword: string,
   ) {
     const regex = new RegExp(
       /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/,
@@ -115,7 +40,7 @@ export default class UserAuth {
       const hashedPassword = await bcrypt.hash(newPassword, salt);
       try {
         const user = userModel.findOneAndUpdate(
-          { _id: context.user_id },
+          { _id: user_id },
           { $set: { password: hashedPassword } },
         );
         return user;
