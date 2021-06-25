@@ -3,7 +3,7 @@ import classroomModel from '../model/classroom';
 import { Query, Mutation, Resolver, Arg } from 'type-graphql';
 import { ApolloError } from 'apollo-server-express';
 import ClassroomModelGQL from '../model/graphql/classroomModelGQL';
-import isEmail from '../bin/isEmail';
+import isMail from '../bin/isMail';
 import UserModelGQL from '../model/graphql/userModelGQL';
 
 @Resolver(ClassroomModelGQL)
@@ -40,7 +40,7 @@ export default class ClassroomResolver {
   public async addClassroom(
     @Arg('classroomName') classroomName: string,
     @Arg('academicYear') academicYear: string,
-    @Arg('studentEmails', (type) => [String]) studentEmails: [string],
+    @Arg('studentMails', (type) => [String]) studentMails: [string],
   ) {
     //==================================
     //check if a classromm in the same year already exists
@@ -54,28 +54,28 @@ export default class ClassroomResolver {
       );
     }
 
-    //make unique emails
+    //make unique Mails
     //==================================
-    const studentEmailsUnique = [...new Set(studentEmails)];
+    const studentMailsUnique = [...new Set(studentMails)];
     //==================================
 
     const students = async () => {
-      let students: { firstname: string; lastname: string; email: string }[] =
+      let students: { firstname: string; lastname: string; mail: string }[] =
         [];
       await Promise.all(
-        studentEmailsUnique.map(async (email) => {
-          const student = await userModel.findOne({ email: email });
+        studentMailsUnique.map(async (mail) => {
+          const student = await userModel.findOne({ mail: mail });
           if (!student) {
             throw new ApolloError('user does not exist');
           }
           students.push({
             firstname: student.firstname,
             lastname: student.lastname,
-            email: student.email,
+            mail: student.mail,
           });
         }),
       );
-      //return array of student of type student {firstname: string, lastname: string, email: string}
+      //return array of student of type student {firstname: string, lastname: string, mail: string}
       return students;
     };
 
@@ -88,9 +88,9 @@ export default class ClassroomResolver {
       });
 
       //map over wanted student and add classroom in each one
-      studentEmailsUnique.map(async (email) => {
+      studentMailsUnique.map(async (mail) => {
         await userModel.findOneAndUpdate(
-          { email: email },
+          { mail: mail },
           {
             $push: {
               classroom: {
@@ -114,13 +114,13 @@ export default class ClassroomResolver {
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   @Mutation((returns) => UserModelGQL)
   public async addStudentToClassroom(
-    @Arg('studentEmail') studentEmail: string,
+    @Arg('studentMail') studentMail: string,
     @Arg('classroomName') classroomName: string,
     @Arg('academicYear') academicYear: string,
   ) {
     //=============================================
     //check if student exists and is not a teacher
-    const student = await userModel.findOne({ email: studentEmail });
+    const student = await userModel.findOne({ mail: studentMail });
     if (!student || student.isTeacher === true) {
       throw new ApolloError('Does not exist or is a teacher');
     }
@@ -147,7 +147,7 @@ export default class ClassroomResolver {
     }
     //=============================================
 
-    if (isEmail(studentEmail)) {
+    if (isMail(studentMail)) {
       try {
         await classroomModel.findOneAndUpdate(
           { _id: classroom._id },
@@ -156,7 +156,7 @@ export default class ClassroomResolver {
               student: {
                 firstname: student.firstname,
                 lastname: student.lastname,
-                email: student.email,
+                mail: student.mail,
               },
             },
           },

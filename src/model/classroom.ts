@@ -8,7 +8,7 @@ const classrooms = new mongoose.Schema({
         {
             firstname: String,
             lastname: String,
-            email: String,
+            mail: String,
         }
     ],
     subject: [

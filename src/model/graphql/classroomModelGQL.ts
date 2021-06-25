@@ -12,5 +12,5 @@ export default class ClassroomModelGQL {
   year: string = '';
 
   @Field((type) => [String])
-  studentEmails!: [string]
+  studentMails!: [string]
 }

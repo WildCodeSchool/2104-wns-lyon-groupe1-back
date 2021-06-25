@@ -6,7 +6,7 @@ export default class UserModelGQL {
   user_id : string = '';
 
   @Field()
-  email : string = '';
+  mail : string = '';
 
   @Field()
   firstname: string = '';
