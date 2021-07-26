@@ -42,18 +42,8 @@ export default class ClassroomResolver {
     @Arg('academicYear') academicYear: string,
     @Arg('studentMails', (type) => [String]) studentMails: [string],
   ) {
-    //==================================
-    //check if a classromm in the same year already exists
-    const classroom = await classroomModel.findOne({
-      name: classroomName,
-      year: academicYear,
-    });
-    if (classroom) {
-      throw new ApolloError(
-        'a classroom with the same academic year already exists',
-      );
-    }
 
+    
     //make unique Mails
     //==================================
     const studentMailsUnique = [...new Set(studentMails)];
