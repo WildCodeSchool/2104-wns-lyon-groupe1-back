@@ -14,8 +14,8 @@ export default class UserAuthResolver {
 
   //get user by id, @@@ don't delete this, because we should have at least one query in a resolver @@
   @Query((returns) => UserModelGQL)
-  public async getUser(@Arg('user_id') user_id : string){
-    const user = userModel.findOne({_id : user_id});
+  public async getUser(@Arg('_id') _id : string){
+    const user = userModel.findOne({_id : _id});
     return user;
   }
 
@@ -23,7 +23,7 @@ export default class UserAuthResolver {
   //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   @Mutation((returns) => UserModelGQL)
   public async changePassword(
-    @Arg('user_id') user_id : string,
+    @Arg('_id') _id : string,
     @Arg('newPassword') newPassword: string,
   ) {
     const regex = new RegExp(
@@ -35,7 +35,7 @@ export default class UserAuthResolver {
       const hashedPassword = await bcrypt.hash(newPassword, salt);
       try {
         const user = userModel.findOneAndUpdate(
-          { _id: user_id },
+          { _id: _id },
           { $set: { password: hashedPassword } },
         );
         return user;
