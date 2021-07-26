@@ -3,7 +3,7 @@ import { Field, ID, ObjectType } from 'type-graphql';
 @ObjectType()
 export default class UserModelGQL {
   @Field((type) => ID)
-  user_id : string = '';
+  _id : string = '';
 
   @Field()
   mail : string = '';
