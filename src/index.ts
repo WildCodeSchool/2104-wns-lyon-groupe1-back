@@ -39,6 +39,7 @@ const initialize = async () => {
     resolvers: [UserAuthResolver, ClassroomResolver],
   });
 
+
   const server = new ApolloServer({ schema });
 
   await server.start();

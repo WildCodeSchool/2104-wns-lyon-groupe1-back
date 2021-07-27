@@ -1,16 +1,31 @@
 import { Field, ObjectType, ID } from 'type-graphql';
 
 @ObjectType()
-export default class ClassroomModelGQL {
+export class ClassroomModelGQL {
   @Field((type) => ID)
-  _id : string = ''
+  _id!: string;
 
   @Field()
-  name: string = '';
+  name!: string;
 
   @Field()
-  year: string = '';
+  year!: string;
 
-  @Field((type) => [String])
-  studentMails!: [string]
+  @Field((type) => [StudentModelGQL])
+  student!: StudentModelGQL[]
+}
+
+@ObjectType()
+class StudentModelGQL {
+  @Field() 
+  userId!: string;
+
+  @Field()
+  firstname!: string;
+
+  @Field()
+  lastname!: string;
+
+  @Field()
+  mail!: string;
 }
