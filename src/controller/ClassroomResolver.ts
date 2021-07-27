@@ -14,26 +14,23 @@ export default class ClassroomResolver {
   @Query((returns) => [ClassroomModelGQL])
   public async getAllClassrooms() {
     const classrooms = await classroomModel.find();
-    console.log(classrooms);
     return classrooms;
   }
 
   //get classroom
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-  @Query((returns) => [UserModelGQL])
+  @Query((returns) => ClassroomModelGQL)
   public async getClassroom(
-    @Arg('name') classroomName: string,
-    @Arg('year') academicYear: string,
+    @Arg('id') id: string
   ) {
     const classroom = await classroomModel.findOne({
-      name: classroomName,
-      year: academicYear,
+      _id : id
     });
     if (!classroom) {
       throw new ApolloError('classroom does not exist');
     }
-    return classroom.student;
+    return classroom;
   }
 
   //add classroom
