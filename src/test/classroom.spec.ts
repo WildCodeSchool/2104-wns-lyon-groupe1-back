@@ -26,7 +26,6 @@ const ADD_STUDENT_TO_CLASSROOM = gql`mutation{addStudentToClassroom(id: "${mockC
 }`;
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-
 describe(
   'classroom integration testing',
   () => {
