@@ -46,9 +46,10 @@
         "typescript": "^4.2.4"
     },
     "dependencies": {
+        "@shelf/jest-mongodb": "^2.0.1",
         "@types/cors": "^2.8.10",
         "@types/mongoose": "^5.10.5",
-        "apollo-server": "^2.23.0",
+        "apollo-server": "^2.25.2",
         "apollo-server-express": "^2.23.0",
         "bcrypt": "^5.0.1",
         "body-parser": "^1.19.0",

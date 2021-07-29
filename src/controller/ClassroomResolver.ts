@@ -4,7 +4,6 @@ import { Query, Mutation, Resolver, Arg } from 'type-graphql';
 import { ApolloError } from 'apollo-server-express';
 import { ClassroomModelGQL } from '../model/graphql/classroomModelGQL';
 import isMail from '../utils/isMail';
-import UserModelGQL from '../model/graphql/userModelGQL';
 
 @Resolver(ClassroomModelGQL)
 export default class ClassroomResolver {
@@ -103,6 +102,8 @@ export default class ClassroomResolver {
     //=============================================
     //check if student exists and is not a teacher and student not in the classroom
     const student = await userModel.findOne({ mail: studentMail, isTeacher: false, 'classroom.classroomId': { $ne: id } });
+    
+  
     if (!student) {
       throw new ApolloError('Student does not exist');
     }
@@ -120,6 +121,7 @@ export default class ClassroomResolver {
       },
       { new: true }
     );
+
     await userModel.findOneAndUpdate(
       { _id: student._id },
       {
