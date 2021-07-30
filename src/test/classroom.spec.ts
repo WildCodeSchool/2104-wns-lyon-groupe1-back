@@ -76,7 +76,7 @@ describe(
         if (apollo !== null) {
           await apollo.stop();
         }
-        // await mongo.stop(); //strop mongoDB in memory instance
+        await mongo?.stop(); //strop mongoDB in memory instance
         await mongoose.disconnect();
       }
     )
