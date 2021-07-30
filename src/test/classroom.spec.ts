@@ -1,12 +1,12 @@
 import "reflect-metadata";
 import startServer from "../server"; //get only start server function
-import config from "../config/env.testing"; //get testing environnement
+// import {config} from "../config/env.testing"; //get testing environnement
+import config from "../config/env.testing";
 import { gql } from "apollo-server-core";
 import mongoose from "mongoose";
 import { ApolloServer } from "apollo-server-express";
-import { MongoMemoryServer } from "mongodb-memory-server"; //spinning mongo in memory for fast tests
+import { MongoMemoryServer } from "mongodb-memory-server-core"; //spinning mongo in memory for fast tests
 // import { createTestClient } from "apollo-server-testing"
-import { createTestClient } from "apollo-server-integration-testing";
 import classroomModel from '../model/classroom';
 import userModel from "../model/user";
 import { mockClassroom, mockStudent1, mockStudent2 } from "./mockClassroom";
@@ -25,17 +25,29 @@ const ADD_CLASSROOM = gql`mutation{
 //mutation to add a classroom by providing classroom _id and students email we want to add
 const ADD_STUDENT_TO_CLASSROOM = gql`mutation{addStudentToClassroom(id: "${mockClassroom._id}", studentMail : "${mockStudent1.mail}"){_id, student{mail}}
 }`;
+
+
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 describe(
   'classroom integration testing',
   () => {
     let apollo: ApolloServer;
+    let mongo: MongoMemoryServer | null = null;
+
+    beforeAll(
+      async () => {
+        mongo = await MongoMemoryServer.create();
+        config.db = mongo.getUri();
+      }
+    )
+
     beforeAll(
       async () => {
         apollo = await startServer(config);
       }
     )
+
 
     beforeEach(
       async () => {
@@ -57,6 +69,7 @@ describe(
         await userModel.deleteMany();
       }
     )
+
 
     afterAll(
       async () => {
@@ -102,8 +115,8 @@ describe(
         })
         expect(response.errors).toBeUndefined();
         expect(response.data).toBeDefined();
-        expect(response.data && response.data.getAllClassrooms[0].name).toEqual(mockClassroom1.name);
-        expect(response.data && response.data.getAllClassrooms[1].name).toEqual(mockClassroom2.name);
+        expect(response.data?.getAllClassrooms[0].name).toEqual(mockClassroom1.name);
+        expect(response.data?.getAllClassrooms[1].name).toEqual(mockClassroom2.name);
       }
     )
 
@@ -116,7 +129,7 @@ describe(
         })
         expect(response.errors).toBeUndefined();
         expect(response.data).toBeDefined();
-        expect(response.data && response.data.getClassroom._id).toEqual(mockClassroom._id);
+        expect(response.data?.getClassroom._id).toEqual(mockClassroom._id);
       }
     )
     //===========================================================================================
@@ -141,10 +154,10 @@ describe(
           query: ADD_CLASSROOM
         })
 
-        expect(response.data && response.data.addClassroom.student[0].mail).toEqual(mockStudent1.mail);
-        expect(response.data && response.data.addClassroom.student[1].mail).toEqual(mockStudent2.mail);
-        expect(response.data && response.data.addClassroom.student[0].userId).toEqual(mockStudent1._id);
-        expect(response.data && response.data.addClassroom.student[1].userId).toEqual(mockStudent2._id);
+        expect(response.data?.addClassroom.student[0].mail).toEqual(mockStudent1.mail);
+        expect(response.data?.addClassroom.student[1].mail).toEqual(mockStudent2.mail);
+        expect(response.data?.addClassroom.student[0].userId).toEqual(mockStudent1._id);
+        expect(response.data?.addClassroom.student[1].userId).toEqual(mockStudent2._id);
       }
     )
     //===========================================================================================
@@ -166,9 +179,10 @@ describe(
 
         expect(response.errors).toBeUndefined();
         expect(response.data).toBeDefined();
-        expect(response.data && response.data.addStudentToClassroom._id).toEqual(mockClassroom._id);
-        expect(response.data && response.data.addStudentToClassroom.student[0].mail).toEqual(mockStudent1.mail);
+        expect(response.data?.addStudentToClassroom._id).toEqual(mockClassroom._id);
+        expect(response.data?.addStudentToClassroom.student[0].mail).toEqual(mockStudent1.mail);
         expect(true).toBeTruthy();
       }
     )
   });
+

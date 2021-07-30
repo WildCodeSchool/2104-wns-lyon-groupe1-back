@@ -23,7 +23,7 @@ export default async function startServer(config:IConfig):Promise<ApolloServer>{
     
     if( config.serverStart ){
         // sur le port défini
-
+        console.log("azfazfazfafzazf");
         const app: express.Application = express();
 
         app.use(cors({ origin: '*' }));

@@ -59,6 +59,7 @@
         "express": "^4.17.1",
         "graphql": "^15.5.0",
         "jsonwebtoken": "^8.5.1",
+        "mongodb-memory-server-global": "^7.3.4",
         "mongoose": "^5.12.7",
         "morgan": "^1.10.0",
         "reflect-metadata": "^0.1.13",
