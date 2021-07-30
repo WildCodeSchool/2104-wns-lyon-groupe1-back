@@ -30,7 +30,10 @@ describe(
   'classroom integration testing',
   () => {
     let apollo: ApolloServer;
-    let mongo: MongoMemoryServer = new MongoMemoryServer();
+
+
+    // const mongo = await MongoMemoryServer.create();
+    // const uri = mongo.getUri();
 
     beforeAll(
       async () => {
@@ -64,7 +67,7 @@ describe(
         if (apollo !== null) {
           await apollo.stop();
         }
-        await mongo.stop(); //strop mongoDB in memory instance
+        // await mongo.stop(); //strop mongoDB in memory instance
         await mongoose.disconnect();
       }
     )
