@@ -3,7 +3,7 @@ import { Field, ObjectType, ID } from 'type-graphql';
 @ObjectType()
 export class ClassroomModelGQL {
   @Field((type) => ID)
-  _id!: string;
+  id!: string;
 
   @Field()
   name!: string;
@@ -12,12 +12,12 @@ export class ClassroomModelGQL {
   year!: string;
 
   @Field((type) => [StudentModelGQL])
-  student!: StudentModelGQL[]
+  student!: StudentModelGQL[];
 }
 
 @ObjectType()
 class StudentModelGQL {
-  @Field() 
+  @Field()
   userId!: string;
 
   @Field()
