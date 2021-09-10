@@ -38,7 +38,7 @@ export default class FlashcardResolver {
     );
 
     if (!classroom) {
-      throw new ApolloError('Classroom not found');
+      throw new ApolloError('Flashcard not found');
     }
 
     return classroom.subject[0].flashcard.filter(
