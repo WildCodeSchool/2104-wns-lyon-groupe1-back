@@ -10,6 +10,7 @@ import { GraphQLSchema } from 'graphql';
 import { IConfig } from './config/env.dev';
 import UserAuthResolver from './controller/UserAuthResolver';
 import ClassroomResolver from './controller/ClassroomResolver';
+import FlashcardResolver from './controller/FlashcardResolver';
 
 export default async function startServer(
   config: IConfig,
@@ -17,7 +18,7 @@ export default async function startServer(
   // on décrit un schéma graphQl à l'aide de la foncton buildSchema
   const schema: GraphQLSchema = await buildSchema({
     validate: false,
-    resolvers: [UserAuthResolver, ClassroomResolver],
+    resolvers: [UserAuthResolver, ClassroomResolver, FlashcardResolver],
   }); // on démarre notre apollo server
   const server: ApolloServer = new ApolloServer({
     schema,
