@@ -1,5 +1,6 @@
 import { Resolver, Arg, Mutation, Query, Ctx } from 'type-graphql';
 import { ApolloError } from 'apollo-server-express';
+import mongoose from 'mongoose';
 import classroomModel from '../model/classroom';
 import FlashcardModelGQL from '../model/graphql/flashcardModelGQL';
 
@@ -22,18 +23,54 @@ export default class FlashcardResolver {
   }
 
   @Query((returns) => FlashcardModelGQL)
-  public async getFlashcard(@Arg('flashcardId') flashcardId: string) {
+  public async getFlashcard(
+    @Arg('flashcardId') flashcardId: string,
+    @Arg('classroomId') classroomId: string,
+  ) {
     const classroom = await classroomModel.findOne(
       {
-        'subject.flashcard._id': flashcardId,
+        _id: classroomId,
+        subject: {
+          $elemMatch: { flashcard: { $elemMatch: { _id: flashcardId } } },
+        },
       },
-      { 'subject.flashcard.$': 1 },
+      ['subject.flashcard.$'],
     );
 
-    // fonctionnelle mais voir pour optimiser dans la requête
+    if (!classroom) {
+      throw new ApolloError('Classroom not found');
+    }
+
     return classroom.subject[0].flashcard.filter(
       (f: any) => f._id.toString() === flashcardId,
     )[0];
+
+    // je laisse ça ici pour continuer de chercher sur du temps libre
+
+    // const class2 = await classroomModel
+    //   .aggregate()
+    //   .match({
+    //     _id: mongoose.Types.ObjectId(classroomId),
+    //     'subject.flashcard': {
+    //       $elemMatch: { _id: mongoose.Types.ObjectId(flashcardId) },
+    //     },
+    //   })
+    //   .unwind('$subject')
+    //   .unwind('$subject.flashcard')
+    //   .match({
+    //     'subject.flashcard._id': mongoose.Types.ObjectId(flashcardId),
+    //   })
+    //   .group({
+    //     _id: '$subject.flashcard._id',
+    //     title: { $first: '$subject.flashcard.title' },
+    //     tag: { $first: '$subject.flashcard.tag' },
+    //     subtitle: { $first: '$subject.flashcard.subtitle' },
+    //     ressource: { $first: '$subject.flashcard.ressource' },
+    //     question: { $first: '$subject.flashcard.question' },
+    //   })
+    //   .exec();
+    // console.log(class2);
+    // return class2;
   }
 
   // made for test and add quickly flashcard, return is not correct
