@@ -1,0 +1,167 @@
+[{
+  "_id": {
+    "$oid": "61026fbeff31aaacbe27aca2"
+  },
+  "firstname": "fsEleve1",
+  "lastname": "lsEleve1",
+  "mail": "eleve1@aca.com",
+  "password": "$2b$14$k9/GY.nPs9aekeU1yI/rr.rPMBCUbi.6VcHT681bcXfGxVMhNCt5O",
+  "token": "eleve1token",
+  "isTeacher": false,
+  "classroom": [
+    {
+      "_id": {
+        "$oid": "6103ef9a36134748d017fe0b"
+      },
+      "classroomId": "6103ef9a36134748d017fe05",
+      "name": "nom de ma promo",
+      "year": "2021/2023"
+    }
+  ]
+},{
+  "_id": {
+    "$oid": "61026fbeff31aaacbe27aca3"
+  },
+  "firstname": "fsEleve2",
+  "lastname": "lsEleve2",
+  "mail": "eleve2@aca.com",
+  "password": "$2b$14$OH/ZVETNvP.YfjZfpjRuvONnOf7ju/juKoEHWo5.fxRft.I0UD6ma",
+  "token": "eleve2token",
+  "isTeacher": false,
+  "classroom": [
+    {
+      "_id": {
+        "$oid": "6103ef9a36134748d017fe0d"
+      },
+      "classroomId": "6103ef9a36134748d017fe05",
+      "name": "nom de ma promo",
+      "year": "2021/2023"
+    }
+  ]
+},{
+  "_id": {
+    "$oid": "61026fbeff31aaacbe27aca4"
+  },
+  "firstname": "fsEleve3",
+  "lastname": "lsEleve3",
+  "mail": "eleve3@aca.com",
+  "password": "$2b$14$aTBsKtoI6cAdWhz0Ive74.geJtHotd3guygsk.IvzpTFjwdcLLleG",
+  "token": "eleve3token",
+  "isTeacher": false,
+  "classroom": [
+    {
+      "_id": {
+        "$oid": "6103ef9a36134748d017fe0f"
+      },
+      "classroomId": "6103ef9a36134748d017fe05",
+      "name": "nom de ma promo",
+      "year": "2021/2023"
+    }
+  ]
+},{
+  "_id": {
+    "$oid": "61026fbeff31aaacbe27aca5"
+  },
+  "firstname": "fsEleve4",
+  "lastname": "lsEleve4",
+  "mail": "eleve4@aca.com",
+  "password": "$2b$14$7HS.1oAOK4H3pXcOIb8D4elTqPOoI9v.U6GR187tLVwzR09XUzLEK",
+  "token": "eleve4token",
+  "isTeacher": false,
+  "classroom": [
+    {
+      "_id": {
+        "$oid": "6103ef9a36134748d017fe11"
+      },
+      "classroomId": "6103ef9a36134748d017fe05",
+      "name": "nom de ma promo",
+      "year": "2021/2023"
+    }
+  ]
+},{
+  "_id": {
+    "$oid": "61026fbeff31aaacbe27aca6"
+  },
+  "firstname": "fsEleve5",
+  "lastname": "lsEleve5",
+  "mail": "eleve5@aca.com",
+  "password": "$2b$14$UtT9S4rhYiaBhEUEosL/Ke/DQqnLdHdYMBMtfJBKnD/fShGucocr6",
+  "token": "eleve5token",
+  "isTeacher": false,
+  "classroom": [
+    {
+      "_id": {
+        "$oid": "6103ef9a36134748d017fe13"
+      },
+      "classroomId": "6103ef9a36134748d017fe05",
+      "name": "nom de ma promo",
+      "year": "2021/2023"
+    }
+  ]
+},{
+  "_id": {
+    "$oid": "61026fbeff31aaacbe27aca7"
+  },
+  "firstname": "fsEleve6",
+  "lastname": "lsEleve6",
+  "mail": "eleve6@aca.com",
+  "password": "$2b$14$BvAOgm1xCXzDesJuYVQdyOZ5gg.yG43YcTTT1orNPcoG88F2e95Q2",
+  "token": "eleve6token",
+  "isTeacher": false,
+  "classroom": []
+},{
+  "_id": {
+    "$oid": "61026fbeff31aaacbe27aca8"
+  },
+  "firstname": "fsEleve7",
+  "lastname": "lsEleve7",
+  "mail": "eleve7@aca.com",
+  "password": "$2b$14$P/iPVgQQ9OuGdgothsjV3eGSAHobFo.j/GUrEbk4N1tqJ0fl71Pt.",
+  "token": "eleve7token",
+  "isTeacher": false,
+  "classroom": []
+},{
+  "_id": {
+    "$oid": "61026fbeff31aaacbe27aca9"
+  },
+  "firstname": "fsEleve8",
+  "lastname": "lsEleve8",
+  "mail": "eleve8@aca.com",
+  "password": "$2b$14$qNeZ7ztGINDI.Cmb8R0wnekZP5I7WDrcn9FF7Grlta8IWl6ZSbJUW",
+  "token": "eleve8token",
+  "isTeacher": false,
+  "classroom": []
+},{
+  "_id": {
+    "$oid": "61026fbeff31aaacbe27acaa"
+  },
+  "firstname": "fsEleve9",
+  "lastname": "lsEleve9",
+  "mail": "eleve9@aca.com",
+  "password": "$2b$14$4SqLkZzgKM7ggK8sJOmdU.hAH/ezNCi7EE1mRC.xDPl3FDKqvwlL2",
+  "token": "eleve9token",
+  "isTeacher": false,
+  "classroom": []
+},{
+  "_id": {
+    "$oid": "61026fbeff31aaacbe27acab"
+  },
+  "firstname": "fsEleve10",
+  "lastname": "lsEleve10",
+  "mail": "eleve10@aca.com",
+  "password": "$2b$14$2nt4G0O7PyckSiRSLf/PY.8QSi2vYWoGwPgF8SzahW.8He13ZAADy",
+  "token": "eleve10token",
+  "isTeacher": false,
+  "classroom": []
+},{
+  "_id": {
+    "$oid": "61026fbeff31aaacbe27acac"
+  },
+  "firstname": "fsTeacher1",
+  "lastname": "lsTeacher1",
+  "mail": "teacher1@aca.com",
+  "password": "$2b$14$lzCNgw4fTq5YbRlO/lc7H.eu9n8yDeB45/jIIdYjtiQlagrOGvO4e",
+  "token": "teacher1token",
+  "isTeacher": true,
+  "classroom": []
+}]
