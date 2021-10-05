@@ -8,7 +8,7 @@ const options = {
   useFindAndModify: false,
 };
 
-const db = 'mongodb://127.0.0.1:27017/wiki-notes';
+const db = `mongodb://${process.env.NODE_ENV === 'production' ? 'mongodb' : 'localhost'}:27017/wiki-notes`;
 
 export interface IConfig {
   db: string;
