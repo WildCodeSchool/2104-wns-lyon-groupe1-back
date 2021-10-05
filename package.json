@@ -6,10 +6,10 @@
     "scripts": {
         "test": "jest",
         "start": "npm run dev",
-        "build": "tsc",
+        "build": "tsc -p .",
         "lint": "eslint . & echo 'lint complete'",
         "dev": "ts-node-dev --transpile-only --respawn  ./src/index.ts",
-        "prod": "tsc && node ./build/src/index.js",
+        "prod": "node ./build/src/index.js",
         "debug": "tsc && node --inspect ./build/src/index.js"
     },
     "repository": {

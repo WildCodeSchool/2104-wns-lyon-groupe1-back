@@ -1,0 +1,602 @@
+[{
+  "_id": {
+    "$oid": "6103ef9a36134748d017fe05"
+  },
+  "name": "nom de ma promo",
+  "year": "2021/2023",
+  "student": [
+    {
+      "_id": {
+        "$oid": "6103ef9a36134748d017fe06"
+      },
+      "firstname": "fsEleve1",
+      "lastname": "lsEleve1",
+      "mail": "eleve1@aca.com",
+      "userId": "61026fbeff31aaacbe27aca2"
+    },
+    {
+      "_id": {
+        "$oid": "6103ef9a36134748d017fe07"
+      },
+      "firstname": "fsEleve2",
+      "lastname": "lsEleve2",
+      "mail": "eleve2@aca.com",
+      "userId": "61026fbeff31aaacbe27aca3"
+    },
+    {
+      "_id": {
+        "$oid": "6103ef9a36134748d017fe08"
+      },
+      "firstname": "fsEleve3",
+      "lastname": "lsEleve3",
+      "mail": "eleve3@aca.com",
+      "userId": "61026fbeff31aaacbe27aca4"
+    },
+    {
+      "_id": {
+        "$oid": "6103ef9a36134748d017fe09"
+      },
+      "firstname": "fsEleve4",
+      "lastname": "lsEleve4",
+      "mail": "eleve4@aca.com",
+      "userId": "61026fbeff31aaacbe27aca5"
+    },
+    {
+      "_id": {
+        "$oid": "6103ef9a36134748d017fe0a"
+      },
+      "firstname": "fsEleve5",
+      "lastname": "lsEleve5",
+      "mail": "eleve5@aca.com",
+      "userId": "61026fbeff31aaacbe27aca6"
+    }
+  ],
+  "subject": [
+    {
+      "subjectId": "613af7d0515a9aff9076b736"
+    }
+  ],
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "613af729515a9aff9076b732"
+  },
+  "name": "nom de ma promo",
+  "year": "2021/2023",
+  "student": [
+    {
+      "_id": {
+        "$oid": "6103ef9a36134748d017fe06"
+      },
+      "firstname": "fsEleve1",
+      "lastname": "lsEleve1",
+      "mail": "eleve1@aca.com",
+      "userId": "61026fbeff31aaacbe27aca2"
+    },
+    {
+      "_id": {
+        "$oid": "6103ef9a36134748d017fe07"
+      },
+      "firstname": "fsEleve2",
+      "lastname": "lsEleve2",
+      "mail": "eleve2@aca.com",
+      "userId": "61026fbeff31aaacbe27aca3"
+    },
+    {
+      "_id": {
+        "$oid": "6103ef9a36134748d017fe08"
+      },
+      "firstname": "fsEleve3",
+      "lastname": "lsEleve3",
+      "mail": "eleve3@aca.com",
+      "userId": "61026fbeff31aaacbe27aca4"
+    },
+    {
+      "_id": {
+        "$oid": "6103ef9a36134748d017fe09"
+      },
+      "firstname": "fsEleve4",
+      "lastname": "lsEleve4",
+      "mail": "eleve4@aca.com",
+      "userId": "61026fbeff31aaacbe27aca5"
+    },
+    {
+      "_id": {
+        "$oid": "6103ef9a36134748d017fe0a"
+      },
+      "firstname": "fsEleve5",
+      "lastname": "lsEleve5",
+      "mail": "eleve5@aca.com",
+      "userId": "61026fbeff31aaacbe27aca6"
+    }
+  ],
+  "subject": [
+    {
+      "_id": {
+        "$oid": "613afd9b58d5994584d87b45"
+      },
+      "subjectId": "613afd9b58d5994584d87b45",
+      "flashcard": [
+        {
+          "tag": [
+            "math",
+            "debut"
+          ],
+          "_id": {
+            "$oid": "613afe5a2e3b7348540024f0"
+          },
+          "title": "Ma premiere fiche",
+          "subtitle": [
+            {
+              "_id": {
+                "$oid": "613afe5a2e3b7348540024f1"
+              },
+              "title": "Partie 1",
+              "position": 1,
+              "paragraph": [
+                {
+                  "_id": {
+                    "$oid": "613afe5a2e3b7348540024f2"
+                  },
+                  "text": "Lorem ipsum dolor sit amet, consectetur adipiscing",
+                  "isValidate": true,
+                  "isPublic": true,
+                  "author": "JOjo",
+                  "date": {
+                    "$date": "1970-01-19T21:07:33.299Z"
+                  }
+                }
+              ]
+            },
+            {
+              "_id": {
+                "$oid": "613afe5a2e3b7348540024f3"
+              },
+              "title": "Partie 2",
+              "position": 2,
+              "paragraph": [
+                {
+                  "_id": {
+                    "$oid": "613afe5a2e3b7348540024f4"
+                  },
+                  "text": "Lorem ipsum dolor sit amet, consectetur adipiscing",
+                  "isValidate": true,
+                  "isPublic": true,
+                  "author": "JOjo",
+                  "date": {
+                    "$date": "1970-01-19T21:07:33.352Z"
+                  }
+                }
+              ]
+            }
+          ],
+          "ressource": [
+            {
+              "_id": {
+                "$oid": "613afe5a2e3b7348540024f5"
+              },
+              "name": "first ressource",
+              "url": "link"
+            },
+            {
+              "_id": {
+                "$oid": "613afe5a2e3b7348540024f6"
+              },
+              "name": "second ressource",
+              "url": "link"
+            }
+          ],
+          "question": [
+            {
+              "_id": {
+                "$oid": "613afe5a2e3b7348540024f7"
+              },
+              "text": "What if...?",
+              "answer": [
+                {
+                  "_id": {
+                    "$oid": "613afe5a2e3b7348540024f8"
+                  },
+                  "text": "Hmm good question...",
+                  "author": "Kang",
+                  "date": {
+                    "$date": "1970-01-19T21:07:40.499Z"
+                  }
+                }
+              ],
+              "date": {
+                "$date": "1970-01-19T21:07:36.899Z"
+              },
+              "author": "Tony S.",
+              "isPublic": true
+            }
+          ]
+        },
+        {
+          "tag": [
+            "math",
+            "debut"
+          ],
+          "_id": {
+            "$oid": "613afe712e3b7348540024fb"
+          },
+          "title": "Ma premiere fiche",
+          "subtitle": [
+            {
+              "_id": {
+                "$oid": "613afe712e3b7348540024fc"
+              },
+              "title": "Partie 1",
+              "position": 1,
+              "paragraph": [
+                {
+                  "_id": {
+                    "$oid": "613afe712e3b7348540024fd"
+                  },
+                  "text": "Lorem ipsum dolor sit amet, consectetur adipiscing",
+                  "isValidate": true,
+                  "isPublic": true,
+                  "author": "JOjo",
+                  "date": {
+                    "$date": "1970-01-19T21:07:33.299Z"
+                  }
+                }
+              ]
+            },
+            {
+              "_id": {
+                "$oid": "613afe712e3b7348540024fe"
+              },
+              "title": "Partie 2",
+              "position": 2,
+              "paragraph": [
+                {
+                  "_id": {
+                    "$oid": "613afe712e3b7348540024ff"
+                  },
+                  "text": "Lorem ipsum dolor sit amet, consectetur adipiscing",
+                  "isValidate": true,
+                  "isPublic": true,
+                  "author": "JOjo",
+                  "date": {
+                    "$date": "1970-01-19T21:07:33.352Z"
+                  }
+                }
+              ]
+            }
+          ],
+          "ressource": [
+            {
+              "_id": {
+                "$oid": "613afe712e3b734854002500"
+              },
+              "name": "first ressource",
+              "url": "link"
+            },
+            {
+              "_id": {
+                "$oid": "613afe712e3b734854002501"
+              },
+              "name": "second ressource",
+              "url": "link"
+            }
+          ],
+          "question": [
+            {
+              "_id": {
+                "$oid": "613afe712e3b734854002502"
+              },
+              "text": "What if...?",
+              "answer": [
+                {
+                  "_id": {
+                    "$oid": "613afe712e3b734854002503"
+                  },
+                  "text": "Hmm good question...",
+                  "author": "Kang",
+                  "date": {
+                    "$date": "1970-01-19T21:07:40.499Z"
+                  }
+                }
+              ],
+              "date": {
+                "$date": "1970-01-19T21:07:36.899Z"
+              },
+              "author": "Tony S.",
+              "isPublic": true
+            }
+          ]
+        },
+        {
+          "tag": [
+            "math",
+            "debut"
+          ],
+          "_id": {
+            "$oid": "613afe722e3b734854002506"
+          },
+          "title": "Ma premiere fiche",
+          "subtitle": [
+            {
+              "_id": {
+                "$oid": "613afe722e3b734854002507"
+              },
+              "title": "Partie 1",
+              "position": 1,
+              "paragraph": [
+                {
+                  "_id": {
+                    "$oid": "613afe722e3b734854002508"
+                  },
+                  "text": "Lorem ipsum dolor sit amet, consectetur adipiscing",
+                  "isValidate": true,
+                  "isPublic": true,
+                  "author": "JOjo",
+                  "date": {
+                    "$date": "1970-01-19T21:07:33.299Z"
+                  }
+                }
+              ]
+            },
+            {
+              "_id": {
+                "$oid": "613afe722e3b734854002509"
+              },
+              "title": "Partie 2",
+              "position": 2,
+              "paragraph": [
+                {
+                  "_id": {
+                    "$oid": "613afe722e3b73485400250a"
+                  },
+                  "text": "Lorem ipsum dolor sit amet, consectetur adipiscing",
+                  "isValidate": true,
+                  "isPublic": true,
+                  "author": "JOjo",
+                  "date": {
+                    "$date": "1970-01-19T21:07:33.352Z"
+                  }
+                }
+              ]
+            }
+          ],
+          "ressource": [
+            {
+              "_id": {
+                "$oid": "613afe722e3b73485400250b"
+              },
+              "name": "first ressource",
+              "url": "link"
+            },
+            {
+              "_id": {
+                "$oid": "613afe722e3b73485400250c"
+              },
+              "name": "second ressource",
+              "url": "link"
+            }
+          ],
+          "question": [
+            {
+              "_id": {
+                "$oid": "613afe722e3b73485400250d"
+              },
+              "text": "What if...?",
+              "answer": [
+                {
+                  "_id": {
+                    "$oid": "613afe722e3b73485400250e"
+                  },
+                  "text": "Hmm good question...",
+                  "author": "Kang",
+                  "date": {
+                    "$date": "1970-01-19T21:07:40.499Z"
+                  }
+                }
+              ],
+              "date": {
+                "$date": "1970-01-19T21:07:36.899Z"
+              },
+              "author": "Tony S.",
+              "isPublic": true
+            }
+          ]
+        },
+        {
+          "tag": [
+            "math",
+            "debut"
+          ],
+          "_id": {
+            "$oid": "613afe732e3b734854002511"
+          },
+          "title": "Ma premiere fiche",
+          "subtitle": [
+            {
+              "_id": {
+                "$oid": "613afe732e3b734854002512"
+              },
+              "title": "Partie 1",
+              "position": 1,
+              "paragraph": [
+                {
+                  "_id": {
+                    "$oid": "613afe732e3b734854002513"
+                  },
+                  "text": "Lorem ipsum dolor sit amet, consectetur adipiscing",
+                  "isValidate": true,
+                  "isPublic": true,
+                  "author": "JOjo",
+                  "date": {
+                    "$date": "1970-01-19T21:07:33.299Z"
+                  }
+                }
+              ]
+            },
+            {
+              "_id": {
+                "$oid": "613afe732e3b734854002514"
+              },
+              "title": "Partie 2",
+              "position": 2,
+              "paragraph": [
+                {
+                  "_id": {
+                    "$oid": "613afe732e3b734854002515"
+                  },
+                  "text": "Lorem ipsum dolor sit amet, consectetur adipiscing",
+                  "isValidate": true,
+                  "isPublic": true,
+                  "author": "JOjo",
+                  "date": {
+                    "$date": "1970-01-19T21:07:33.352Z"
+                  }
+                }
+              ]
+            }
+          ],
+          "ressource": [
+            {
+              "_id": {
+                "$oid": "613afe732e3b734854002516"
+              },
+              "name": "first ressource",
+              "url": "link"
+            },
+            {
+              "_id": {
+                "$oid": "613afe732e3b734854002517"
+              },
+              "name": "second ressource",
+              "url": "link"
+            }
+          ],
+          "question": [
+            {
+              "_id": {
+                "$oid": "613afe732e3b734854002518"
+              },
+              "text": "What if...?",
+              "answer": [
+                {
+                  "_id": {
+                    "$oid": "613afe732e3b734854002519"
+                  },
+                  "text": "Hmm good question...",
+                  "author": "Kang",
+                  "date": {
+                    "$date": "1970-01-19T21:07:40.499Z"
+                  }
+                }
+              ],
+              "date": {
+                "$date": "1970-01-19T21:07:36.899Z"
+              },
+              "author": "Tony S.",
+              "isPublic": true
+            }
+          ]
+        },
+        {
+          "tag": [
+            "math",
+            "debut"
+          ],
+          "_id": {
+            "$oid": "613afea3fc2a032e4c4260ca"
+          },
+          "title": "Ma premiere fiche",
+          "subtitle": [
+            {
+              "_id": {
+                "$oid": "613afea3fc2a032e4c4260cb"
+              },
+              "title": "Partie 1",
+              "position": 1,
+              "paragraph": [
+                {
+                  "_id": {
+                    "$oid": "613afea3fc2a032e4c4260cc"
+                  },
+                  "text": "Lorem ipsum dolor sit amet, consectetur adipiscing",
+                  "isValidate": true,
+                  "isPublic": true,
+                  "author": "JOjo",
+                  "date": {
+                    "$date": "1970-01-19T21:07:33.299Z"
+                  }
+                }
+              ]
+            },
+            {
+              "_id": {
+                "$oid": "613afea3fc2a032e4c4260cd"
+              },
+              "title": "Partie 2",
+              "position": 2,
+              "paragraph": [
+                {
+                  "_id": {
+                    "$oid": "613afea3fc2a032e4c4260ce"
+                  },
+                  "text": "Lorem ipsum dolor sit amet, consectetur adipiscing",
+                  "isValidate": true,
+                  "isPublic": true,
+                  "author": "JOjo",
+                  "date": {
+                    "$date": "1970-01-19T21:07:33.352Z"
+                  }
+                }
+              ]
+            }
+          ],
+          "ressource": [
+            {
+              "_id": {
+                "$oid": "613afea3fc2a032e4c4260cf"
+              },
+              "name": "first ressource",
+              "url": "link"
+            },
+            {
+              "_id": {
+                "$oid": "613afea3fc2a032e4c4260d0"
+              },
+              "name": "second ressource",
+              "url": "link"
+            }
+          ],
+          "question": [
+            {
+              "_id": {
+                "$oid": "613afea3fc2a032e4c4260d1"
+              },
+              "text": "What if...?",
+              "answer": [
+                {
+                  "_id": {
+                    "$oid": "613afea3fc2a032e4c4260d2"
+                  },
+                  "text": "Hmm good question...",
+                  "author": "Kang",
+                  "date": {
+                    "$date": "1970-01-19T21:07:40.499Z"
+                  }
+                }
+              ],
+              "date": {
+                "$date": "1970-01-19T21:07:36.899Z"
+              },
+              "author": "Tony S.",
+              "isPublic": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subjectId": "613b0bea515a9aff9076b740"
+    }
+  ],
+  "__v": 0
+}]

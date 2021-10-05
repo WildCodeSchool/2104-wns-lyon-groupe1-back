@@ -14,6 +14,7 @@ const classrooms = new mongoose.Schema({
     ],
     subject: [
         {
+            subjectId: String,
             flashcard: [
                 {
                     title: String,
