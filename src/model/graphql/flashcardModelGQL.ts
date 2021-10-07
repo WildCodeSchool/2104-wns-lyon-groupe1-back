@@ -1,4 +1,5 @@
-import { Field, ObjectType, ID } from 'type-graphql';
+import { isListType } from 'graphql';
+import { Field, ObjectType, ID, ArgsType, InputType } from 'type-graphql';
 
 @ObjectType()
 export default class FlashcardModelGQL {
@@ -52,14 +53,16 @@ class Answer {
 }
 
 @ObjectType()
-class Ressource {
+export abstract class Ressource {
   @Field()
   name!: string;
+
+  @Field()
   url!: string;
 }
 
 @ObjectType()
-class Subtitle {
+export abstract class Subtitle {
   @Field()
   title!: string;
 
