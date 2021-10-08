@@ -136,7 +136,21 @@ export default class FlashcardResolver {
       );
     }
 
-    let newFlashCard = {
+
+    // Check if flashcard is exist, if yes throw error otherwise continu
+    const isExistFlashcard = await classroomModel.findOne(
+      {
+        _id: classroomId,
+        subject: {
+          $elemMatch: { flashcard: { $elemMatch: { title: title } } },
+        },
+      },
+    );
+    if (isExistFlashcard) {
+      throw new ApolloError('Flashcard already exist');
+    }
+
+    const newFlashCard = {
       title: title,
       tag: tag,
       subtitle: subtitle,
@@ -146,16 +160,11 @@ export default class FlashcardResolver {
     // On peut faire une projection sur l'objet crée mais pour avoir un objet imbirqué qu'on a crée comme dans ce cas il faudrait filtrer les résultat ...
     //https://stackoverflow.com/questions/54082166/mongoose-return-only-updated-item-using-findoneandupdate-and-array-filters
 
-
-
-    // { _id: classroomId, subject: { $elemMatch: { subjectId: subjectId } } },
-    // { $push: { 'subject.$.flashcard': newFlashCard } },
     try {
       const classroom = await classroomModel.findOneAndUpdate(
-        { _id: classroomId, "subject.subjectId" : subjectId },
+        { _id: classroomId, "subject.subjectId": subjectId },
         { $push: { 'subject.$.flashcard': newFlashCard } },
         {
-          upsert: true,
           new: true,
           projection: 'subject',
         }
