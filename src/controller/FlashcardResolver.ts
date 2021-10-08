@@ -3,9 +3,7 @@ import { ApolloError } from 'apollo-server-express';
 import mongoose from 'mongoose';
 import ClassroomModel from '../model/classroom';
 import FlashcardModelGQL, { Ressource, Subtitle } from '../model/graphql/flashcardModelGQL';
-
-
-
+import { ITokenContext } from '../utils/interface';
 
 @ArgsType()
 class CreateFlahsCard implements Partial<FlashcardModelGQL>  {
@@ -50,7 +48,12 @@ class CreateSubtitle extends Subtitle {
 @Resolver(FlashcardModelGQL)
 export default class FlashcardResolver {
   @Query((returns) => [FlashcardModelGQL])
-  public async getAllFlashcards(@Arg('classroomId') classroomId: string) {
+  public async getAllFlashcards(
+    @Arg('classroomId') classroomId: string,
+    @Ctx() ctx: ITokenContext,
+  ) {
+    const { user } = ctx;
+    console.log(user.id);
     const classroom = await ClassroomModel.findById(classroomId);
 
     if (!classroom) {
@@ -59,6 +62,18 @@ export default class FlashcardResolver {
 
     return classroom.subject.reduce((acc: any, cur: any) => {
       cur.flashcard.forEach((flash: any) => {
+        // i need to check if each paragraph includs in subtitle isPublic or write from the user who's request
+        flash.subtitle.forEach((sub: any, index: number) => {
+          const filtered = sub.paragraph.filter(
+            (par: any) => par.isPublic || par.author === user.id,
+          );
+          if (filtered.length) {
+            flash.subtitle[index].paragraph = filtered;
+          } else {
+            delete flash.subtitle[index].paragraph;
+          }
+        });
+
         acc.push(flash);
       });
       return acc;
@@ -69,7 +84,11 @@ export default class FlashcardResolver {
   public async getFlashcard(
     @Arg('flashcardId') flashcardId: string,
     @Arg('classroomId') classroomId: string,
+    @Ctx() ctx: ITokenContext,
   ) {
+    const { user } = ctx;
+    console.log(user.id);
+
     const classroom = await ClassroomModel.findOne(
       {
         _id: classroomId,
@@ -84,9 +103,29 @@ export default class FlashcardResolver {
       throw new ApolloError('Flashcard not found');
     }
 
-    return classroom.subject[0].flashcard.filter(
+    const flashcard = classroom.subject[0].flashcard.filter(
       (f: any) => f._id.toString() === flashcardId,
     )[0];
+
+    const filteredParagraph = flashcard.subtitle.reduce(
+      (acc: any, sub: any) => {
+        const filtered = sub.paragraph.filter((p: any) => p.author === user.id);
+        sub.paragraph = filtered;
+        // if(filtered.length) {
+        //   acc.push(filtered);
+        // }
+        if (filtered.length) {
+          acc.push(sub);
+        }
+        return acc;
+      },
+      [],
+    );
+
+    flashcard.subtitle = [...filteredParagraph];
+
+    // remove of paragraph not in public or not write by the user
+    return flashcard;
 
     // je laisse ça ici pour continuer de chercher sur du temps libre
 
