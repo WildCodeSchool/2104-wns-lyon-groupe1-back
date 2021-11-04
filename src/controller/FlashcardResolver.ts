@@ -57,6 +57,10 @@ class UpdateFlashcard implements Partial<FlashcardModelGQL> {
 
 @InputType()
 class ParagraphInput implements Partial<Paragraph> {
+
+  @Field((type) => ID, { nullable: true })
+  paragraphId!: string;
+
   @Field()
   text!: string;
 
@@ -85,27 +89,6 @@ class CreateParagraph extends FlashcardModelGQL {
 
   @Field((type) => ParagraphInput)
   paragraph!: ParagraphInput;
-}
-
-
-
-
-@ArgsType()
-class UpdateParagraph extends FlashcardModelGQL {
-  @Field((type) => ID)
-  classroomId!: string;
-
-  @Field((type) => ID)
-  subjectId!: string;
-
-  @Field((type) => ID)
-  flashcardId!: string;
-
-  @Field((type) => ID)
-  subtitleId!: string
-
-  @Field((type) => [ParagraphInput])
-  paragraph!: ParagraphInput[];
 }
 
 
@@ -183,6 +166,18 @@ export default class FlashcardResolver {
     return subtitle;
   }
 
+  //private method to get a paragraph by providing its id and subtitle object
+  //=================================================
+  private getParagraphById(subtitle: any, paragraphId: string) {
+
+
+    const paragrpah = subtitle.paragraph.find(
+      (currentParagraph: any) => {
+        return currentParagraph._id == paragraphId;
+      }
+    )
+    return paragrpah
+  }
 
 
 
@@ -354,7 +349,7 @@ export default class FlashcardResolver {
 
       const createdParagraph = {
         text: paragraph.text,
-        isValidated: false,
+        isValidate: false,
         isPublic: paragraph.isPublic,
         author: paragraph.author,
         date: getCurrentLocalDateParis()
@@ -370,32 +365,44 @@ export default class FlashcardResolver {
     }
   }
 
-
-
-
-
-  //  update a paragraph by providing 
+  // update a paragraph
   //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-  /*   @Mutation((returns) => FlashcardModelGQL)
-    public async updateParagraph(
-      @Args() {
-        classroomId,
-        subjectId,
-        flashcardId,
-        subtitleId,
-        paragraph
-      }
-        : UpdateParagraph
-    ) {
-  
-  
+  @Mutation((returns) => FlashcardModelGQL)
+  public async updateParagraph(
+    @Arg('classroomId') classroomId: string,
+    @Arg('subjectId') subjectId: string,
+    @Arg('flashcardId') flashcardId: string,
+    @Arg('subtitleId') subtitleId: string,
+    @Arg('paragraph') paragraph: ParagraphInput
+  ) {
+    if (!paragraph.paragraphId) {
+      throw new ApolloError("A paragraph _id should be provided");
+    }
+
+    try {
       const classroom = await this.getClassroomById(classroomId);
       const subject = this.getSubjectById(classroom, subjectId);
       const flashcard = this.getFlashcardById(subject, flashcardId);
-  
-      
-    
-    } */
+      const subtitle = this.getSubtitleById(flashcard, subtitleId);
+      const paragraphToUpdate = this.getParagraphById(subtitle, paragraph.paragraphId);
+
+      //cannot update a paragraph if paragarph's authos is not paragraph's editor
+      if (paragraph.author !== paragraphToUpdate.author) {
+        throw new ApolloError("Could not update because not the same author")
+      }
+
+      paragraphToUpdate.text = paragraph.text;
+      paragraphToUpdate.isValidate = false;
+      paragraphToUpdate.date = getCurrentLocalDateParis();
+      paragraphToUpdate.isPublic = paragraph.isPublic;
+
+      await classroomModel.updateOne(classroom);
+      return flashcard;
+    }
+    catch {
+      throw new ApolloError("Couold not update paragraph")
+    }
+  }
 
 
   /*   @Mutation((returns) => FlashcardModelGQL)
