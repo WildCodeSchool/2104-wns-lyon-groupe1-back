@@ -8,14 +8,65 @@ import {
   ArgsType,
   Args,
   Ctx,
+  ID
 } from 'type-graphql';
 import { ApolloError } from 'apollo-server-express';
+import mongoose, { Aggregate } from 'mongoose';
 import ClassroomModel from '../model/classroom';
 import FlashcardModelGQL, {
   Ressource,
   Subtitle,
 } from '../model/graphql/flashcardModelGQL';
 import { ITokenContext } from '../utils/interface';
+
+
+
+@ArgsType()
+class CreateFlahscard implements Partial<FlashcardModelGQL>  {
+  @Field()
+  classroomId!: string;
+
+  @Field()
+  subjectId!: string;
+
+  @Field()
+  title!: string;
+
+  @Field((type) => [String])
+  tag!: string[];
+
+  @Field((type) => [CreateSubtitle])
+  subtitle!: CreateSubtitle[];
+
+  @Field((type) => [CreateRessource])
+  ressource!: CreateRessource[];
+}
+
+
+
+@ArgsType()
+class UpdateFlashcard implements Partial<FlashcardModelGQL> {
+  @Field((type) => ID)
+  classroomId!: string;
+
+  @Field((type) => ID)
+  subjectId!: string;
+
+  @Field((type) => ID)
+  flashcardId!: string;
+
+  @Field((type) => String, { nullable: true })
+  title: string | undefined;
+
+  @Field((type) => [String], { nullable: true })
+  tag: string[] | undefined;
+
+  @Field((type) => [CreateSubtitle], { nullable: true })
+  subtitle: CreateSubtitle[] | undefined;
+
+  @Field((type) => [CreateRessource], { nullable: true })
+  ressource: CreateRessource[] | undefined
+}
 
 @InputType()
 class CreateRessource extends Ressource {
@@ -197,4 +248,50 @@ export default class FlashcardResolver {
       throw new ApolloError('Could not create flashcard');
     }
   }
+
+
+  //  update flashcard by providing a valid flashcardId, classroomId, subjectId
+  // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  @Mutation((returns) => FlashcardModelGQL)
+  public async updateFlashcard(
+    @Args() {
+      classroomId,
+      subjectId,
+      flashcardId,
+      title,
+      ressource,
+      tag,
+      subtitle
+    }
+      : UpdateFlashcard
+  ) {
+
+    try {
+      const classroom = await ClassroomModel.findOne(
+        {
+          _id: classroomId,
+        },
+      )
+
+      const subject = classroom.subject.find(
+        (currentSubject: any) => currentSubject.subjectId == subjectId
+      )
+
+      const flashcard = subject.flashcard.find(
+        (currentFlashcard: any) => currentFlashcard._id == flashcardId
+      )
+
+      title && (flashcard.title = title);
+      ressource && (flashcard.ressource = ressource)
+      tag && (flashcard.tag = tag)
+      subtitle && (flashcard.subtitle = subtitle)
+
+      await ClassroomModel.updateOne(classroom);
+
+      return flashcard
+    } catch (error) {
+      throw new ApolloError("Error updating flashcard")
+    }
+  }
 }
+
