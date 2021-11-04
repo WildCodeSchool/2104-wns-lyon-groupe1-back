@@ -24,6 +24,9 @@ export default class FlashcardModelGQL {
 
 @ObjectType()
 class Question {
+  @Field((type) => ID)
+  id!: string;
+
   @Field()
   text!: string;
 
@@ -78,6 +81,9 @@ export abstract class Subtitle {
 
 @ObjectType()
 export abstract class Paragraph {
+  @Field((type) => ID)
+  id!: string;
+
   @Field()
   text!: string;
 
