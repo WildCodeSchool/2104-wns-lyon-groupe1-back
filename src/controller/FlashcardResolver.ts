@@ -1,6 +1,6 @@
-import { Resolver, Arg, Mutation, Query, InputType, Field, ArgsType, Args, Ctx } from 'type-graphql';
+import { Resolver, Arg, Mutation, Query, InputType, Field, ArgsType, Args, ID } from 'type-graphql';
 import { ApolloError } from 'apollo-server-express';
-import mongoose from 'mongoose';
+import mongoose, { Aggregate } from 'mongoose';
 import classroomModel from '../model/classroom';
 import FlashcardModelGQL, { Ressource, Subtitle } from '../model/graphql/flashcardModelGQL';
 
@@ -8,7 +8,7 @@ import FlashcardModelGQL, { Ressource, Subtitle } from '../model/graphql/flashca
 
 
 @ArgsType()
-class CreateFlahsCard implements Partial<FlashcardModelGQL>  {
+class CreateFlahscard implements Partial<FlashcardModelGQL>  {
   @Field()
   classroomId!: string;
 
@@ -26,6 +26,32 @@ class CreateFlahsCard implements Partial<FlashcardModelGQL>  {
 
   @Field((type) => [CreateRessource])
   ressource!: CreateRessource[];
+}
+
+
+
+@ArgsType()
+class UpdateFlashcard implements Partial<FlashcardModelGQL> {
+  @Field((type) => ID)
+  classroomId!: string;
+
+  @Field((type) => ID)
+  subjectId!: string;
+
+  @Field((type) => ID)
+  flashcardId!: string;
+
+  @Field((type) => String, { nullable: true })
+  title: string | undefined;
+
+  @Field((type) => [String], { nullable: true })
+  tag: string[] | undefined;
+
+  @Field((type) => [CreateSubtitle], { nullable: true })
+  subtitle: CreateSubtitle[] | undefined;
+
+  @Field((type) => [CreateRessource], { nullable: true })
+  ressource: CreateRessource[] | undefined
 }
 
 @InputType()
@@ -49,6 +75,8 @@ class CreateSubtitle extends Subtitle {
 
 @Resolver(FlashcardModelGQL)
 export default class FlashcardResolver {
+
+
   @Query((returns) => [FlashcardModelGQL])
   public async getAllFlashcards(@Arg('classroomId') classroomId: string) {
     const classroom = await classroomModel.findById(classroomId);
@@ -128,7 +156,7 @@ export default class FlashcardResolver {
       tag,
       subtitle
     }
-      : CreateFlahsCard
+      : CreateFlahscard
   ) {
     if (title === "" || tag.length === 0 || ressource.length === 0 || subtitle.length === 0) {
       throw new ApolloError(
@@ -185,4 +213,54 @@ export default class FlashcardResolver {
       );
     }
   }
+
+
+  //  update flashcard by providing a valid flashcardId, classroomId, subjectId
+  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  @Mutation((returns) => FlashcardModelGQL)
+  public async updateFlashcard(
+    @Args() {
+      classroomId,
+      subjectId,
+      flashcardId,
+      title,
+      ressource,
+      tag,
+      subtitle
+    }
+      : UpdateFlashcard
+  ) {
+
+    try {
+      const classroom = await classroomModel.findOne(
+        {
+          _id: classroomId,
+        },
+      )
+
+      const subject = classroom.subject.find(
+        (currentSubject: any) => {
+          return currentSubject.subjectId == subjectId
+        }
+      )
+
+      const flashcard = subject.flashcard.find(
+        (currentFlashcard: any) => {
+          return currentFlashcard._id == flashcardId
+        }
+      )
+
+      title && (flashcard.title = title);
+      ressource && (flashcard.ressource = ressource)
+      tag && (flashcard.tag = tag)
+      subtitle && (flashcard.subtitle = subtitle)
+
+      await classroomModel.updateOne(classroom);
+
+      return flashcard
+    } catch (error) {
+      throw new ApolloError("Error updating flashcard")
+    }
+  }
 }
+
