@@ -63,6 +63,9 @@ export abstract class Ressource {
 
 @ObjectType()
 export abstract class Subtitle {
+  @Field((type) => ID)
+  id! : string
+
   @Field()
   title!: string;
 
@@ -74,7 +77,7 @@ export abstract class Subtitle {
 }
 
 @ObjectType()
-class Paragraph {
+export abstract class Paragraph {
   @Field()
   text!: string;
 
