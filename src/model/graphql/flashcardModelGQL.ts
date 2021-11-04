@@ -1,4 +1,47 @@
-import { Field, ObjectType, ID, } from 'type-graphql';
+import { isListType } from 'graphql';
+import { Field, ObjectType, ID, ArgsType, InputType } from 'type-graphql';
+
+@ObjectType()
+export default class FlashcardModelGQL {
+  @Field((type) => ID)
+  id!: string;
+
+  @Field()
+  title!: string;
+
+  @Field((type) => [String])
+  tag!: string[];
+
+  @Field((type) => [Subtitle])
+  subtitle!: Subtitle[];
+
+  @Field((type) => [Ressource])
+  ressource!: Ressource[];
+
+  @Field((type) => [Question])
+  question!: Question[];
+}
+
+@ObjectType()
+class Question {
+  @Field((type) => ID)
+  id!: string;
+
+  @Field()
+  text!: string;
+
+  @Field((type) => [Answer])
+  answer!: Answer[];
+
+  @Field()
+  date!: Date;
+
+  @Field()
+  author!: string;
+
+  @Field()
+  isPublic!: boolean;
+}
 
 @ObjectType()
 class Answer {
@@ -56,6 +99,9 @@ export abstract class Subtitle {
 
 @ObjectType()
 export abstract class Paragraph {
+  @Field((type) => ID)
+  id!: string;
+
   @Field()
   text!: string;
 
