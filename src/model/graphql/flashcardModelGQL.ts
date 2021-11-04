@@ -40,7 +40,22 @@ export abstract class Ressource {
 }
 
 @ObjectType()
-class Paragraph {
+export abstract class Subtitle {
+  @Field((type) => ID)
+  id! : string
+
+  @Field()
+  title!: string;
+
+  @Field()
+  position!: number;
+
+  @Field((type) => [Paragraph])
+  paragraph!: Paragraph[];
+}
+
+@ObjectType()
+export abstract class Paragraph {
   @Field()
   text!: string;
 
@@ -55,18 +70,6 @@ class Paragraph {
 
   @Field()
   date!: Date;
-}
-
-@ObjectType()
-export abstract class Subtitle {
-  @Field()
-  title!: string;
-
-  @Field()
-  position!: number;
-
-  @Field(() => [Paragraph])
-  paragraph!: Paragraph[];
 }
 
 @ObjectType()
