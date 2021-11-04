@@ -1,8 +1,51 @@
-import { Resolver, Arg, Mutation, Query, Ctx } from 'type-graphql';
+import { Resolver, Arg, Mutation, Query, InputType, Field, ArgsType, Args, Ctx } from 'type-graphql';
 import { ApolloError } from 'apollo-server-express';
 import mongoose from 'mongoose';
 import classroomModel from '../model/classroom';
-import FlashcardModelGQL from '../model/graphql/flashcardModelGQL';
+import FlashcardModelGQL, { Ressource, Subtitle } from '../model/graphql/flashcardModelGQL';
+
+
+
+
+@ArgsType()
+class CreateFlahsCard implements Partial<FlashcardModelGQL>  {
+  @Field()
+  classroomId!: string;
+
+  @Field()
+  subjectId!: string;
+
+  @Field()
+  title!: string;
+
+  @Field((type) => [String])
+  tag!: string[];
+
+  @Field((type) => [CreateSubtitle])
+  subtitle!: CreateSubtitle[];
+
+  @Field((type) => [CreateRessource])
+  ressource!: CreateRessource[];
+}
+
+@InputType()
+class CreateRessource extends Ressource {
+  @Field()
+  name!: string;
+
+  @Field()
+  url!: string;
+}
+
+@InputType()
+class CreateSubtitle extends Subtitle {
+  @Field()
+  title!: string;
+
+  @Field()
+  position!: number;
+}
+
 
 @Resolver(FlashcardModelGQL)
 export default class FlashcardResolver {
@@ -74,81 +117,72 @@ export default class FlashcardResolver {
   }
 
   // made for test and add quickly flashcard, return is not correct
+  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   @Mutation((returns) => FlashcardModelGQL)
   public async createFlashcard(
-    @Arg('classroomId') classroomId: string,
-    @Arg('subjectId') subject: string,
+    @Args() {
+      classroomId,
+      subjectId,
+      title,
+      ressource,
+      tag,
+      subtitle
+    }
+      : CreateFlahsCard
   ) {
-    const flash = [
+    if (title === "" || tag.length === 0 || ressource.length === 0 || subtitle.length === 0) {
+      throw new ApolloError(
+        'title / tag / ressources / subtitles are required',
+      );
+    }
+
+
+    // Check if flashcard is exist, if yes throw error otherwise continu
+    const isExistFlashcard = await classroomModel.findOne(
       {
-        title: 'Ma premiere fiche',
-        tag: ['math', 'debut'],
-        subtitle: [
-          {
-            title: 'Partie 1',
-            position: 1,
-            paragraph: [
-              {
-                text: 'Lorem ipsum dolor sit amet, consectetur adipiscing',
-                isValidate: true,
-                isPublic: true,
-                author: 'JOjo',
-                date: '1631253299',
-              },
-            ],
-          },
-          {
-            title: 'Partie 2',
-            position: 2,
-            paragraph: [
-              {
-                text: 'Lorem ipsum dolor sit amet, consectetur adipiscing',
-                isValidate: true,
-                isPublic: true,
-                author: 'JOjo',
-                date: '1631253352',
-              },
-            ],
-          },
-        ],
-        ressource: [
-          {
-            name: 'first ressource',
-            url: 'link',
-          },
-          {
-            name: 'second ressource',
-            url: 'link',
-          },
-        ],
-        question: [
-          {
-            text: 'What if...?',
-            answer: [
-              {
-                text: 'Hmm good question...',
-                author: 'Kang',
-                date: '1631260499',
-              },
-            ],
-            date: 1631256899,
-            author: 'Tony S.',
-            isPublic: true,
-          },
-        ],
+        _id: classroomId,
+        subject: {
+          $elemMatch: { flashcard: { $elemMatch: { title: title } } },
+        },
       },
-    ];
-    const old = await classroomModel.findOne({
-      _id: classroomId,
-      subject: { $elemMatch: { subjectId: subject } },
-    });
-
-    const classr = await classroomModel.findOneAndUpdate(
-      { _id: classroomId, subject: { $elemMatch: { subjectId: subject } } },
-      { $push: { 'subject.$.flashcard': flash } },
-      { new: true },
     );
+    if (isExistFlashcard) {
+      throw new ApolloError('Flashcard already exist');
+    }
 
-    return classr;
+    const newFlashCard = {
+      title: title,
+      tag: tag,
+      subtitle: subtitle,
+      ressource: ressource
+    }
+
+    // On peut faire une projection sur l'objet crée mais pour avoir un objet imbirqué qu'on a crée comme dans ce cas il faudrait filtrer les résultat ...
+    //https://stackoverflow.com/questions/54082166/mongoose-return-only-updated-item-using-findoneandupdate-and-array-filters
+
+    try {
+      const classroom = await classroomModel.findOneAndUpdate(
+        { _id: classroomId, "subject.subjectId": subjectId },
+        { $push: { 'subject.$.flashcard': newFlashCard } },
+        {
+          new: true,
+          projection: 'subject',
+        }
+      )
+
+      const updatedSubject = classroom.subject.filter((singleSubject: any) => {
+        return singleSubject.subjectId == subjectId
+      })[0];
+
+      const createdFlashcard = updatedSubject.flashcard.filter((singleFlashcard: any) => {
+        return singleFlashcard.title == title
+      })[0]
+      return createdFlashcard;
+    }
+    catch (error) {
+      throw new ApolloError(
+        'Could not create flashcard',
+      );
+    }
   }
 }
