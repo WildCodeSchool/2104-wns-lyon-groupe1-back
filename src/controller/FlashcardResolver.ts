@@ -75,11 +75,16 @@ class ParagraphInput implements Partial<Paragraph> {
   @Field((type) => ID, { nullable: true })
   paragraphId: string | undefined;
 
-  @Field()
+  @Field({ nullable: true })
   text!: string;
 
-  @Field()
+  @Field({ nullable: true })
   isPublic!: boolean;
+
+
+  //is validate can be nullable because it might not be provided in case we want to simply update or create a paragraph, but it should be provided to validate a paragarph
+  @Field({ nullable: true })
+  isValidate!: boolean;
   //TODO delete if tested and not needed
   /* 
     @Field()
@@ -198,8 +203,6 @@ export default class FlashcardResolver {
   // private method to get a paragraph by providing its id and subtitle object
   //= ================================================
   private getParagraphById(subtitle: any, paragraphId: string) {
-
-
     const paragrpah = subtitle.paragraph.find(
       (currentParagraph: any) => currentParagraph._id == paragraphId
     )
@@ -383,6 +386,9 @@ export default class FlashcardResolver {
 
   //UPDATE flashcard paragraph by providing a paragraph id or CREATE a new paragraph if no paragraph id is provided
   //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  //=======================================================
+  // if an id is provided wuthout a text then there we will an error because text will be deleted
+  //=======================================================
   @Mutation((returns) => FlashcardModelGQL)
   public async updateFlashcardParagraph(
     @Args() {
@@ -395,18 +401,31 @@ export default class FlashcardResolver {
       : CreateParagraph
   ) {
 
+
     const classroom = await this.getClassroomById(classroomId);
     const subject = this.getSubjectById(classroom, subjectId);
     const flashcard = this.getFlashcardById(subject, flashcardId);
     const subtitle = this.getSubtitleById(flashcard, subtitleId);
 
-    //if no paragraph.id is provided then create a new paragraph
-    if (!paragraph.paragraphId) {
+    if (Object.keys(paragraph).length === 2 && paragraph.paragraphId && paragraph.isValidate !== undefined) {
+      //TODO check also if author and validator are not the same person
+      const paragraphToUpdate = this.getParagraphById(subtitle, paragraph.paragraphId);
+      paragraphToUpdate.isValidate = paragraph.isValidate
+      try {
+        await classroomModel.updateOne(classroom);
+        return flashcard;
+      }
+      catch {
+        throw new ApolloError("Could validate paragarph")
+      }
+    }
 
+    //if no paragraph.id is provided then create a new paragraph
+    else if (!paragraph.paragraphId) {
       const createdParagraph = {
         text: paragraph.text,
         isValidate: false,
-        isPublic: paragraph.isPublic,
+        isPublic: (paragraph.isPublic !== undefined) ? paragraph.isPublic : true,
         //TODO author = userid stored in context
         // author: paragraph.author, 
         date: getCurrentLocalDateParis()
@@ -456,19 +475,19 @@ export default class FlashcardResolver {
     }
 
     //if a paragraph id is provided then update the paragraph
-    if (paragraph.paragraphId) {
+    else if (paragraph.paragraphId) {
       const paragraphToUpdate = this.getParagraphById(subtitle, paragraph.paragraphId);
-      paragraphToUpdate.text ? (paragraphToUpdate.text = paragraph.text) : "";
+      paragraphToUpdate.text !== undefined ? (paragraphToUpdate.text = paragraph.text) : " ";
       paragraphToUpdate.isValidate = false;
       paragraphToUpdate.date = getCurrentLocalDateParis();
-      paragraphToUpdate.isPublic ? (paragraphToUpdate.isPublic = paragraph.isPublic) : true;
+      paragraph.isPublic !== undefined ? (paragraphToUpdate.isPublic = paragraph.isPublic) : (paragraphToUpdate.isPublic = true)
 
-      try{
+      try {
         await classroomModel.updateOne(classroom);
         return flashcard;
       }
 
-      catch{
+      catch {
         throw new ApolloError("Could not update paragraph")
       }
     }
