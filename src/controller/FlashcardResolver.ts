@@ -59,16 +59,17 @@ class UpdateFlashcard implements Partial<FlashcardModelGQL> {
 class ParagraphInput implements Partial<Paragraph> {
 
   @Field((type) => ID, { nullable: true })
-  paragraphId!: string;
+  paragraphId: string | undefined;
 
   @Field()
   text!: string;
 
   @Field()
   isPublic!: boolean;
-
-  @Field()
-  author!: string;
+  //TODO delete if tested and not needed
+  /* 
+    @Field()
+    author!: string; */
 }
 
 
@@ -138,7 +139,7 @@ export default class FlashcardResolver {
   private getSubjectById(classroom: any, subjectId: string) {
     const subject = classroom.subject.find(
       (currentSubject: any) => {
-        return currentSubject._id == subjectId
+        return currentSubject.subjectId == subjectId
       }
     )
     return subject;
@@ -309,6 +310,7 @@ export default class FlashcardResolver {
       : UpdateFlashcard
   ) {
 
+    //TODO inorder to update a flashcard subtitle without deleteing its content we should also considerate using the id so we only change the text
     try {
       const classroom = await this.getClassroomById(classroomId);
       const subject = this.getSubjectById(classroom, subjectId);
@@ -327,10 +329,10 @@ export default class FlashcardResolver {
   }
 
 
-  //  Create a paragraph by providing, classroomId, subjectId, flashcardId, subtitleId, paragraph texx/author/ispublic
-  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  //UPDATE flashcard paragraph by providing a paragraph id or CREATE a new paragraph if no paragraph id is provided
+  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   @Mutation((returns) => FlashcardModelGQL)
-  public async createParagraph(
+  public async updateFlashcardParagraph(
     @Args() {
       classroomId,
       subjectId,
@@ -341,113 +343,56 @@ export default class FlashcardResolver {
       : CreateParagraph
   ) {
 
-    try {
-      const classroom = await this.getClassroomById(classroomId);
-      const subject = this.getSubjectById(classroom, subjectId);
-      const flashcard = this.getFlashcardById(subject, flashcardId);
-      const subtitle = this.getSubtitleById(flashcard, subtitleId);
+    const classroom = await this.getClassroomById(classroomId);
+    const subject = this.getSubjectById(classroom, subjectId);
+    const flashcard = this.getFlashcardById(subject, flashcardId);
+    const subtitle = this.getSubtitleById(flashcard, subtitleId);
+
+    //if no paragraph.id is provided then create a new paragraph
+    if (!paragraph.paragraphId) {
 
       const createdParagraph = {
         text: paragraph.text,
         isValidate: false,
         isPublic: paragraph.isPublic,
-        author: paragraph.author,
+        //TODO author = userid stored in context
+        // author: paragraph.author, 
         date: getCurrentLocalDateParis()
       }
-
       subtitle.paragraph = subtitle.paragraph.push(createdParagraph);
-      await classroomModel.updateOne(classroom);
-
-      return flashcard;
-    }
-    catch {
-      throw new ApolloError("Could not create a new paragraph")
-    }
-  }
-
-  // update a paragraph
-  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-  @Mutation((returns) => FlashcardModelGQL)
-  public async updateParagraph(
-    @Arg('classroomId') classroomId: string,
-    @Arg('subjectId') subjectId: string,
-    @Arg('flashcardId') flashcardId: string,
-    @Arg('subtitleId') subtitleId: string,
-    @Arg('paragraph') paragraph: ParagraphInput
-  ) {
-    if (!paragraph.paragraphId) {
-      throw new ApolloError("A paragraph _id should be provided");
-    }
-
-    try {
-      const classroom = await this.getClassroomById(classroomId);
-      const subject = this.getSubjectById(classroom, subjectId);
-      const flashcard = this.getFlashcardById(subject, flashcardId);
-      const subtitle = this.getSubtitleById(flashcard, subtitleId);
-      const paragraphToUpdate = this.getParagraphById(subtitle, paragraph.paragraphId);
-
-      //cannot update a paragraph if paragarph's authos is not paragraph's editor
-      if (paragraph.author !== paragraphToUpdate.author) {
-        throw new ApolloError("Could not update because not the same author")
+      try {
+        await classroomModel.updateOne(classroom);
+        return flashcard;
       }
+      catch {
+        throw new ApolloError("Could not create a new paragraph")
+      }
+    }
 
-      paragraphToUpdate.text = paragraph.text;
+    //if a paragraph id is provided then update the paragraph
+    if (paragraph.paragraphId) {
+      const paragraphToUpdate = this.getParagraphById(subtitle, paragraph.paragraphId);
+      paragraphToUpdate.text ? (paragraphToUpdate.text = paragraph.text) : "";
       paragraphToUpdate.isValidate = false;
       paragraphToUpdate.date = getCurrentLocalDateParis();
-      paragraphToUpdate.isPublic = paragraph.isPublic;
+      paragraphToUpdate.isPublic ? (paragraphToUpdate.isPublic = paragraph.isPublic) : true;
 
-      await classroomModel.updateOne(classroom);
-      return flashcard;
-    }
-    catch {
-      throw new ApolloError("Couold not update paragraph")
+      try{
+        await classroomModel.updateOne(classroom);
+        return flashcard;
+      }
+
+      catch{
+        throw new ApolloError("Could not update paragraph")
+      }
     }
   }
 
 
-  /*   @Mutation((returns) => FlashcardModelGQL)
-    public async updateFlashcardParagraph(
-      @Arg('classroomId') classroomId: string,
-      @Arg('subjectId') subjectId : string,    
-      @Arg('flashcardId') flashcardId: string,
-      @Arg('paragraph') paragraph : Paragraph
-    ) {
-    } */
+
+  //TODO paragrpah validation 
+  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+
+
 }
-
-/* {
-  "subtitle_id" : [ { "paragraph_id" : "545",  "text" : "Update", "isPublic" : true}, { "paragraph_id" : "545",  "text" : "New", "isPublic" : true} ]
-  } */
-
-
-
-  //C'étais dans la mutation de createFlashcard
-  //============================================================
-      // je laisse ça ici pour continuer de chercher sur du temps libre
-
-    // const class2 = await classroomModel
-    //   .aggregate()
-    //   .match({
-    //     _id: mongoose.Types.ObjectId(classroomId),
-    //     'subject.flashcard': {
-    //       $elemMatch: { _id: mongoose.Types.ObjectId(flashcardId) },
-    //     },
-    //   })
-    //   .unwind('$subject')
-    //   .unwind('$subject.flashcard')
-    //   .match({
-    //     'subject.flashcard._id': mongoose.Types.ObjectId(flashcardId),
-    //   })
-    //   .group({
-    //     _id: '$subject.flashcard._id',
-    //     title: { $first: '$subject.flashcard.title' },
-    //     tag: { $first: '$subject.flashcard.tag' },
-    //     subtitle: { $first: '$subject.flashcard.subtitle' },
-    //     ressource: { $first: '$subject.flashcard.ressource' },
-    //     question: { $first: '$subject.flashcard.question' },
-    //   })
-    //   .exec();
-    // console.log(class2);
-    // return class2;
-
-  //============================================================
