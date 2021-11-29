@@ -21,6 +21,23 @@
         "no-console": "warn",
         "no-debugger": "warn",
         "no-unused-vars" : "warn",
-        "no-use-before-define": "warn"
-    }
+        "no-use-before-define": "warn",
+        "import/extensions": [
+            "error",
+            "ignorePackages",
+            {
+              "js": "never",
+              "jsx": "never",
+              "ts": "never",
+              "tsx": "never"
+            }
+         ]
+    },
+    "settings": {
+        "import/resolver": {
+          "node": {
+            "extensions": [".js", ".jsx", ".ts", ".tsx"]
+          }
+        }
+      }
 }

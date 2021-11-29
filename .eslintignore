@@ -8,3 +8,4 @@ dist/
 package-lock.json
 pnpm-lock.json
 yarn.lock
+jest.config.ts

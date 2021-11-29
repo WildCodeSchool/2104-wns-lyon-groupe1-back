@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import userModel from '../model/user';
 import { Resolver, Arg, Mutation, Query, Ctx } from 'type-graphql';
@@ -18,6 +18,7 @@ export default class UserAuthResolver {
 
   //TODO user change password
   //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
   @Mutation((returns) => Boolean)
   public async changePassword(
     @Arg('newPassword') newPassword: string,
