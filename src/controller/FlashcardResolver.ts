@@ -187,7 +187,9 @@ export default class FlashcardResolver {
     return paragrpah
   }
 
+  private validateParagraph(paragraph: ParagraphInput) {
 
+  }
 
 
   @Query((returns) => [FlashcardModelGQL])
@@ -302,6 +304,7 @@ export default class FlashcardResolver {
 
 
   //  update flashcard by providing a valid flashcardId, classroomId, subjectId
+  //TODO handle subtitle position
   //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   @Mutation((returns) => FlashcardModelGQL)
   public async updateFlashcard(
@@ -317,51 +320,70 @@ export default class FlashcardResolver {
       : UpdateFlashcard
   ) {
 
-    //TODO inorder to update a flashcard subtitle without deleteing its content we should also considerate using the id so we only change the text
-    //TODO when subtitle is modified, do not delete paragraphs inside it
+
+    let classroom;
+
     try {
-      const classroom = await this.getClassroomById(classroomId);
-      const subject = this.getSubjectById(classroom, subjectId);
-      const flashcard = this.getFlashcardById(subject, flashcardId);
-      title && (flashcard.title = title);
-      ressource && (flashcard.ressource = ressource)
-      tag && (flashcard.tag = tag)
+      classroom = await this.getClassroomById(classroomId);
+    }
+    catch {
+      throw new ApolloError("Could not get classroom");
+    }
 
+    const subject = this.getSubjectById(classroom, subjectId);
+    const flashcard = this.getFlashcardById(subject, flashcardId);
+    title && (flashcard.title = title);
+    ressource && (flashcard.ressource = ressource)
+    tag && (flashcard.tag = tag)
 
-      const modifyExistingSubtitle = (subtitle: SubtitleInput): Subtitle => {
-        const subtitleToUpdate: Subtitle = this.getSubtitleById(flashcard, subtitle.subtitleId);
-        subtitle.title && (subtitleToUpdate.title = subtitle.title);
-        subtitle.position && (subtitleToUpdate.position = subtitle.position);
-        return subtitleToUpdate;
+    const modifyExistingSubtitle = (subtitle: SubtitleInput): Subtitle => {
+      const subtitleToUpdate: Subtitle = this.getSubtitleById(flashcard, subtitle.subtitleId);
+      subtitleToUpdate.title = subtitle.title
+      subtitleToUpdate.position = subtitle.position
+      return subtitleToUpdate;
+    }
+
+    const isValidSubtitlesPosition = (subtitles: Subtitle[]): boolean => {
+      let seen = new Set();
+      const hasDublicates = subtitles.some((subtitle) => {
+        return seen.size === seen.add(subtitle.position).size;
+      })
+      return hasDublicates;
+    }
+
+    //we will check if some subtitle has subtitleId attribute, if yes then modify them without changing their paragraphs otherwise create them
+    if (subtitle) {
+      const updatedSubtitle: Subtitle | any = [];
+      subtitle.filter((singleSubtitle: SubtitleInput) => {
+        if (singleSubtitle.subtitleId) {
+          updatedSubtitle.push(modifyExistingSubtitle(singleSubtitle));
+        }
+        else {
+          updatedSubtitle.push(singleSubtitle);
+        }
+      })
+
+      if (isValidSubtitlesPosition(updatedSubtitle)) {
+        throw new ApolloError("Cannot have the same position more than one time");
       }
-
-      //we will check if some subtitle has subtitleId attribute, if yes then modify them without changing their paragraphs otherwise create them
-      if (subtitle) {
-        const updatedSubtitle : any = [];
-        subtitle.filter((singleSubtitle: SubtitleInput) => {
-          if (singleSubtitle.subtitleId) {
-            updatedSubtitle.push(modifyExistingSubtitle(singleSubtitle));
-          }
-          else {
-            updatedSubtitle.push(singleSubtitle);
-          }
-        })
+      else {
         flashcard.subtitle = updatedSubtitle;
       }
-      await classroomModel.updateOne(classroom);
+    }
 
+    try {
+      await classroomModel.updateOne(classroom);
       return flashcard
-    } catch (error) {
-      throw new ApolloError("Error updating flashcard")
+
+    }
+    catch {
+      throw new ApolloError("ERROR cannot update flashcard paragraphs")
     }
   }
 
 
   //UPDATE flashcard paragraph by providing a paragraph id or CREATE a new paragraph if no paragraph id is provided
   //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-  //=======================================================
-  // if an id is provided wuthout a text then there we will an error because text will be deleted
-  //=======================================================
   @Mutation((returns) => FlashcardModelGQL)
   //TODO paragraph author
   public async updateFlashcardParagraph(
@@ -381,47 +403,48 @@ export default class FlashcardResolver {
     const flashcard = this.getFlashcardById(subject, flashcardId);
     const subtitle = this.getSubtitleById(flashcard, subtitleId);
 
-    if (Object.keys(paragraph).length === 2 && paragraph.paragraphId && paragraph.isValidate !== undefined) {
-      //TODO check also if author and validator are not the same person
-      const paragraphToUpdate = this.getParagraphById(subtitle, paragraph.paragraphId);
-      paragraphToUpdate.isValidate = paragraph.isValidate
-      try {
-        await classroomModel.updateOne(classroom);
-        return flashcard;
-      }
-      catch {
-        throw new ApolloError("Could not validate paragarph")
-      }
-    }
 
     //if no paragraph.id is provided then create a new paragraph
-    else if (!paragraph.paragraphId) {
-      const createdParagraph = {
-        text: paragraph.text,
-        isValidate: false,
-        isPublic: (paragraph.isPublic !== undefined) ? paragraph.isPublic : true,
-        //TODO author = userid stored in context
-        // author: paragraph.author, 
-        date: getCurrentLocalDateParis()
+    if (!paragraph.paragraphId) {
+      if (!paragraph.text) {
+        throw new ApolloError("Paragraph text is required")
       }
-      subtitle.paragraph = subtitle.paragraph.push(createdParagraph);
-      try {
-        await classroomModel.updateOne(classroom);
-        return flashcard;
-      }
-      catch {
-        throw new ApolloError("Could not create a new paragraph")
+      else {
+        const createdParagraph = {
+          text: paragraph.text,
+          isValidate: false, // => paragraph is not validated by default
+          isPublic: (paragraph.isPublic !== undefined) ? paragraph.isPublic : true, // => paragraph is public by default
+          author: "REPLACE BY USER ID",
+          //TODO author = userid stored in context
+          // author: paragraph.author, 
+          date: getCurrentLocalDateParis()
+        }
+        subtitle.paragraph = subtitle.paragraph.push(createdParagraph);
+        try {
+          await classroomModel.updateOne(classroom);
+          return flashcard;
+        }
+        catch {
+          throw new ApolloError("Could not create a new paragraph")
+        }
       }
     }
 
-    //if a paragraph id is provided then update the paragraph
+    //if a paragraph id is provided then update the existing paragraph
     else if (paragraph.paragraphId) {
       const paragraphToUpdate = this.getParagraphById(subtitle, paragraph.paragraphId);
-      paragraphToUpdate.text !== undefined ? (paragraphToUpdate.text = paragraph.text) : " ";
-      paragraphToUpdate.isValidate = false;
-      paragraphToUpdate.date = getCurrentLocalDateParis();
-      paragraph.isPublic !== undefined ? (paragraphToUpdate.isPublic = paragraph.isPublic) : (paragraphToUpdate.isPublic = true)
 
+      //if there is only isValidate in paragraph object then it switch ti validate true
+      //TODO check user here, if the same use who created the paragraph then do not validate
+      if (Object.keys(paragraph).length === 2 && paragraph.isValidate !== undefined && paragraph.paragraphId) {
+        paragraphToUpdate.isValidate = paragraph.isValidate;
+      }
+      else {
+        paragraph.text && (paragraphToUpdate.text = paragraph.text);
+        paragraphToUpdate.isValidate = false; //=> upon updated paragraph become !validated
+        paragraphToUpdate.date = getCurrentLocalDateParis();
+        paragraph.isPublic !== undefined ? (paragraphToUpdate.isPublic = paragraph.isPublic) : (paragraphToUpdate.isPublic = true)
+      }
       try {
         await classroomModel.updateOne(classroom);
         return flashcard;
@@ -432,22 +455,5 @@ export default class FlashcardResolver {
       }
     }
   }
-
-
-
-  //TODO paragrpah validation 
   //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
 }
-
-
-/* subtitle: [
-  {
-    title: "new first subtitle"
-    position: 1
-  },
-  {
-    title : "new second subtitle"
-    position : 2
-  }
-] */
