@@ -1,4 +1,14 @@
-import { Resolver, Arg, Mutation, Query, InputType, Field, ArgsType, Args, Ctx } from 'type-graphql';
+import {
+  Resolver,
+  Arg,
+  Mutation,
+  Query,
+  InputType,
+  Field,
+  ArgsType,
+  Args,
+  Ctx,
+} from 'type-graphql';
 import { ApolloError } from 'apollo-server-express';
 import mongoose from 'mongoose';
 import ClassroomModel from '../model/classroom';
@@ -6,7 +16,7 @@ import FlashcardModelGQL, { Ressource, Subtitle } from '../model/graphql/flashca
 import { ITokenContext } from '../utils/interface';
 
 @ArgsType()
-class CreateFlahsCard implements Partial<FlashcardModelGQL>  {
+class CreateFlahsCard implements Partial<FlashcardModelGQL> {
   @Field()
   classroomId!: string;
 
@@ -44,7 +54,6 @@ class CreateSubtitle extends Subtitle {
   position!: number;
 }
 
-
 @Resolver(FlashcardModelGQL)
 export default class FlashcardResolver {
   @Query((returns) => [FlashcardModelGQL])
@@ -60,24 +69,24 @@ export default class FlashcardResolver {
       throw new ApolloError('Classroom not found');
     }
 
-    return classroom.subject.reduce((acc: any, cur: any) => {
-      cur.flashcard.forEach((flash: any) => {
-        // i need to check if each paragraph includs in subtitle isPublic or write from the user who's request
-        flash.subtitle.forEach((sub: any, index: number) => {
-          const filtered = sub.paragraph.filter(
-            (par: any) => par.isPublic || par.author === user.id,
-          );
-          if (filtered.length) {
-            flash.subtitle[index].paragraph = filtered;
-          } else {
-            delete flash.subtitle[index].paragraph;
-          }
-        });
+    const allFlashcards = classroom.subject.reduce(
+      (flashcards: any, subject: any) => {
+        flashcards.push(...subject.flashcard);
+        return flashcards;
+      },
+      [],
+    );
 
-        acc.push(flash);
+    return allFlashcards.map((flashcard: any) => {
+      flashcard.subtitle = flashcard.subtitle.map((subtitle: any) => {
+        subtitle.paragraph = subtitle.paragraph.filter(
+          (p: any) => p.author === user.id || p.isPublic === true,
+        );
+        return subtitle;
       });
-      return acc;
-    }, []);
+      console.log(flashcard);
+      return flashcard;
+    });
   }
 
   @Query((returns) => FlashcardModelGQL)
@@ -87,6 +96,7 @@ export default class FlashcardResolver {
     @Ctx() ctx: ITokenContext,
   ) {
     const { user } = ctx;
+    console.log('get one', ctx);
     console.log(user.id);
 
     const classroom = await ClassroomModel.findOne(
@@ -107,74 +117,42 @@ export default class FlashcardResolver {
       (f: any) => f._id.toString() === flashcardId,
     )[0];
 
-    const filteredParagraph = flashcard.subtitle.reduce(
-      (acc: any, sub: any) => {
-        const filtered = sub.paragraph.filter((p: any) => p.author === user.id);
-        sub.paragraph = filtered;
-        // if(filtered.length) {
-        //   acc.push(filtered);
-        // }
-        if (filtered.length) {
-          acc.push(sub);
-        }
-        return acc;
+    const filtered = (flashcard.subtitle = flashcard.subtitle.map(
+      (subtitle: any) => {
+        subtitle.paragraph = subtitle.paragraph.filter(
+          (p: any) => p.author === user.id || p.isPublic === true,
+        );
+        return subtitle;
       },
-      [],
-    );
-
-    flashcard.subtitle = [...filteredParagraph];
-
-    // remove of paragraph not in public or not write by the user
+    ));
+    flashcard.subtitle = [...filtered];
     return flashcard;
-
-    // je laisse ça ici pour continuer de chercher sur du temps libre
-
-    // const class2 = await ClassroomModel
-    //   .aggregate()
-    //   .match({
-    //     _id: mongoose.Types.ObjectId(classroomId),
-    //     'subject.flashcard': {
-    //       $elemMatch: { _id: mongoose.Types.ObjectId(flashcardId) },
-    //     },
-    //   })
-    //   .unwind('$subject')
-    //   .unwind('$subject.flashcard')
-    //   .match({
-    //     'subject.flashcard._id': mongoose.Types.ObjectId(flashcardId),
-    //   })
-    //   .group({
-    //     _id: '$subject.flashcard._id',
-    //     title: { $first: '$subject.flashcard.title' },
-    //     tag: { $first: '$subject.flashcard.tag' },
-    //     subtitle: { $first: '$subject.flashcard.subtitle' },
-    //     ressource: { $first: '$subject.flashcard.ressource' },
-    //     question: { $first: '$subject.flashcard.question' },
-    //   })
-    //   .exec();
-    // console.log(class2);
-    // return class2;
   }
 
   // made for test and add quickly flashcard, return is not correct
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   @Mutation((returns) => FlashcardModelGQL)
   public async createFlashcard(
-    @Args() {
+    @Args()
+    {
       classroomId,
       subjectId,
       title,
       ressource,
       tag,
-      subtitle
-    }
-      : CreateFlahsCard
+      subtitle,
+    }: CreateFlahsCard,
   ) {
-    if (title === "" || tag.length === 0 || ressource.length === 0 || subtitle.length === 0) {
+    if (
+      title === '' ||
+      tag.length === 0 ||
+      ressource.length === 0 ||
+      subtitle.length === 0
+    ) {
       throw new ApolloError(
         'title / tag / ressources / subtitles are required',
       );
     }
-
 
     // Check if flashcard is exist, if yes throw error otherwise continu
     const isExistFlashcard = await ClassroomModel.findOne(
@@ -206,18 +184,15 @@ export default class FlashcardResolver {
         {
           new: true,
           projection: 'subject',
-        }
-      )
+        },
+      );
 
       const updatedSubject = classroom.subject.filter((singleSubject: any) => singleSubject.subjectId === subjectId)[0];
 
       const createdFlashcard = updatedSubject.flashcard.filter((singleFlashcard: any) => singleFlashcard.title === title)[0]
       return createdFlashcard;
-    }
-    catch (error) {
-      throw new ApolloError(
-        'Could not create flashcard',
-      );
+    } catch (error) {
+      throw new ApolloError('Could not create flashcard');
     }
   }
 }
