@@ -126,6 +126,10 @@ class RessourceInput extends Ressource {
 
 @InputType()
 class SubtitleInput extends Subtitle {
+
+  @Field({ nullable: true })
+  subtitleId!: string;
+
   @Field()
   title!: string;
 
@@ -366,6 +370,7 @@ export default class FlashcardResolver {
   ) {
 
     //TODO inorder to update a flashcard subtitle without deleteing its content we should also considerate using the id so we only change the text
+    //TODO when subtitle is modified, do not delete paragraphs inside it
     try {
       const classroom = await this.getClassroomById(classroomId);
       const subject = this.getSubjectById(classroom, subjectId);
@@ -373,9 +378,29 @@ export default class FlashcardResolver {
       title && (flashcard.title = title);
       ressource && (flashcard.ressource = ressource)
       tag && (flashcard.tag = tag)
-      subtitle && (flashcard.subtitle = subtitle)
 
-      await ClassroomModel.updateOne(classroom);
+
+      const modifyExistingSubtitle = (subtitle: SubtitleInput): Subtitle => {
+        const subtitleToUpdate: Subtitle = this.getSubtitleById(flashcard, subtitle.subtitleId);
+        subtitle.title && (subtitleToUpdate.title = subtitle.title);
+        subtitle.position && (subtitleToUpdate.position = subtitle.position);
+        return subtitleToUpdate;
+      }
+
+      //we will check if some subtitle has subtitleId attribute, if yes then modify them without changing their paragraphs otherwise create them
+      if (subtitle) {
+        const updatedSubtitle : any = [];
+        subtitle.filter((singleSubtitle: SubtitleInput) => {
+          if (singleSubtitle.subtitleId) {
+            updatedSubtitle.push(modifyExistingSubtitle(singleSubtitle));
+          }
+          else {
+            updatedSubtitle.push(singleSubtitle);
+          }
+        })
+        flashcard.subtitle = updatedSubtitle;
+      }
+      await classroomModel.updateOne(classroom);
 
       return flashcard
     } catch (error) {
@@ -390,6 +415,7 @@ export default class FlashcardResolver {
   // if an id is provided wuthout a text then there we will an error because text will be deleted
   //=======================================================
   @Mutation((returns) => FlashcardModelGQL)
+  //TODO paragraph author
   public async updateFlashcardParagraph(
     @Args() {
       classroomId,
@@ -416,7 +442,7 @@ export default class FlashcardResolver {
         return flashcard;
       }
       catch {
-        throw new ApolloError("Could validate paragarph")
+        throw new ApolloError("Could not validate paragarph")
       }
     }
 
