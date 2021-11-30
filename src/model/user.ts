@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { iUser } from "../utils/types/userTypes";
 
 const user = new mongoose.Schema({
     mail: {type : String, unique : true},
@@ -16,5 +17,5 @@ const user = new mongoose.Schema({
     ]
 });
 
-const model : mongoose.Model<any>= mongoose.model("users", user);
+const model : mongoose.Model<iUser>= mongoose.model("users", user);
 export default model;
