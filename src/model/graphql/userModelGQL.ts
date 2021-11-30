@@ -15,19 +15,19 @@ class Classroom {
 @ObjectType()
 export default class UserModelGQL {
   @Field((type) => ID)
-  id = '';
+  id!: string;
 
   @Field()
-  mail = '';
+  mail!: string;
 
   @Field()
-  firstname = '';
+  firstname!: string;
 
   @Field()
-  lastname = '';
+  lastname!: string;
 
   @Field()
-  password = '';
+  password!: string;
 
   @Field()
   isTeacher!: boolean;
@@ -38,4 +38,3 @@ export default class UserModelGQL {
   @Field((type) => [Classroom])
   classroom!: Classroom[];
 }
-
