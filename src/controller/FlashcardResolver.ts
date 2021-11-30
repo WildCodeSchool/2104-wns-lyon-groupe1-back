@@ -172,7 +172,7 @@ export default class FlashcardResolver {
   private getSubtitleById(flashcard: iFlashcard, subtitleId: string): iSubtitle | undefined {
     const subtitle = flashcard.subtitle.find(
       // eslint-disable-next-line eqeqeq
-      (currentSubtitle: any) => currentSubtitle._id == subtitleId
+      (currentSubtitle: iSubtitle) => currentSubtitle._id == subtitleId
     )
     return subtitle;
   }
@@ -198,7 +198,7 @@ export default class FlashcardResolver {
     }
 
     return classroom.subject.reduce((acc: any, cur: any) => {
-      cur.flashcard.forEach((flash: any) => {
+      cur.flashcard.forEach((flash: iFlashcard) => {
         acc.push(flash);
       });
       return acc;
@@ -407,7 +407,7 @@ export default class FlashcardResolver {
     const classroom: any = await this.getClassroomById(classroomId);
     const subject = classroom && this.getSubjectById(classroom, subjectId);
     const flashcard = subject && this.getFlashcardById(subject, flashcardId);
-    const subtitle: any = flashcard && this.getSubtitleById(flashcard, subtitleId);
+    const subtitle = flashcard && this.getSubtitleById(flashcard, subtitleId);
 
 
     // if no paragraph.id is provided then create a new paragraph
