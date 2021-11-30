@@ -20,7 +20,6 @@ import getCurrentLocalDateParis from '../utils/getCurrentLocalDateParis';
 
 
 
-
 @ArgsType()
 class CreateFlahscard implements Partial<FlashcardModelGQL>  {
   @Field()
