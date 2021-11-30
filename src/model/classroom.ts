@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { iClassroom } from "../utils/types/classroomTypes";
 
 
 const classrooms = new mongoose.Schema({
@@ -18,7 +19,7 @@ const classrooms = new mongoose.Schema({
             flashcard: [
                 {
                     title: String,
-                    tag: [],
+                    tag: [String],
                     subtitle: [
                         {
                             title: String,
@@ -62,5 +63,5 @@ const classrooms = new mongoose.Schema({
 });
 
 
-const model : mongoose.Model<any>= mongoose.model("classrooms", classrooms);
+const model : mongoose.Model<iClassroom>= mongoose.model("classrooms", classrooms);
 export default model
