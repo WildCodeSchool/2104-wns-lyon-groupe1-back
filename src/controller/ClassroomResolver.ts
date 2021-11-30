@@ -135,8 +135,8 @@ export default class ClassroomResolver {
         $push: {
           classroom: {
             classroomId: id,
-            name: classRoom.name,
-            year: classRoom.year,
+            name: classRoom && classRoom.name,
+            year: classRoom && classRoom.year,
           },
         },
       },

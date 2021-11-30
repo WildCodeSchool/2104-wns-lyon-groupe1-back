@@ -18,102 +18,6 @@ import classroomModel from '../model/classroom';
 import FlashcardModelGQL, { Paragraph, Ressource, Subtitle } from '../model/graphql/flashcardModelGQL';
 import getCurrentLocalDateParis from '../utils/getCurrentLocalDateParis';
 
-
-
-@ArgsType()
-class CreateFlahscard implements Partial<FlashcardModelGQL>  {
-  @Field()
-  classroomId!: string;
-
-  @Field()
-  subjectId!: string;
-
-  @Field()
-  title!: string;
-
-  @Field((type) => [String])
-  tag!: string[];
-
-  @Field((type) => [SubtitleInput])
-  subtitle!: SubtitleInput[];
-
-  @Field((type) => [RessourceInput])
-  ressource!: RessourceInput[];
-}
-
-
-
-@ArgsType()
-class UpdateFlashcard implements Partial<FlashcardModelGQL> {
-  @Field((type) => ID)
-  classroomId!: string;
-
-  @Field((type) => ID)
-  subjectId!: string;
-
-  @Field((type) => ID)
-  flashcardId!: string;
-
-  @Field((type) => String, { nullable: true })
-  title: string | undefined;
-
-  @Field((type) => [String], { nullable: true })
-  tag: string[] | undefined;
-
-  @Field((type) => [SubtitleInput], { nullable: true })
-  subtitle: SubtitleInput[] | undefined;
-
-  @Field((type) => [RessourceInput], { nullable: true })
-  ressource: RessourceInput[] | undefined
-}
-
-
-@InputType()
-class ParagraphInput implements Partial<Paragraph> {
-
-  @Field((type) => ID, { nullable: true })
-  paragraphId: string | undefined;
-
-  @Field({ nullable: true })
-  text!: string;
-
-  @Field({ nullable: true })
-  isPublic!: boolean;
-
-
-  //is validate can be nullable because it might not be provided in case we want to simply update or create a paragraph, but it should be provided to validate a paragarph
-  @Field({ nullable: true })
-  isValidate!: boolean;
-  //TODO delete if tested and not needed
-  /* 
-    @Field()
-    author!: string; */
-}
-
-
-@ArgsType()
-class CreateParagraph extends FlashcardModelGQL {
-
-  @Field((type) => ID)
-  classroomId!: string;
-
-  @Field((type) => ID)
-  subjectId!: string;
-
-  @Field((type) => ID)
-  flashcardId!: string;
-
-  @Field((type) => ID)
-  subtitleId!: string
-
-  @Field((type) => ParagraphInput)
-  paragraph!: ParagraphInput;
-}
-
-
-
-
-
 @InputType()
 class RessourceInput extends Ressource {
   @Field()
@@ -158,6 +62,104 @@ class CreateFlahsCard implements Partial<FlashcardModelGQL> {
 }
 
 
+
+@ArgsType()
+class CreateFlahscard implements Partial<FlashcardModelGQL>  {
+  @Field()
+  classroomId!: string;
+
+  @Field()
+  subjectId!: string;
+
+  @Field()
+  title!: string;
+
+  @Field(() => [String])
+  tag!: string[];
+
+  @Field(() => [SubtitleInput])
+  subtitle!: SubtitleInput[];
+
+  @Field(() => [RessourceInput])
+  ressource!: RessourceInput[];
+}
+
+
+
+@ArgsType()
+class UpdateFlashcard implements Partial<FlashcardModelGQL> {
+  @Field(() => ID)
+  classroomId!: string;
+
+  @Field(() => ID)
+  subjectId!: string;
+
+  @Field(() => ID)
+  flashcardId!: string;
+
+  @Field(() => String, { nullable: true })
+  title: string | undefined;
+
+  @Field(() => [String], { nullable: true })
+  tag: string[] | undefined;
+
+  @Field(() => [SubtitleInput], { nullable: true })
+  subtitle: SubtitleInput[] | undefined;
+
+  @Field(() => [RessourceInput], { nullable: true })
+  ressource: RessourceInput[] | undefined
+}
+
+
+@InputType()
+class ParagraphInput implements Partial<Paragraph> {
+
+  @Field(() => ID, { nullable: true })
+  paragraphId: string | undefined;
+
+  @Field({ nullable: true })
+  text!: string;
+
+  @Field({ nullable: true })
+  isPublic!: boolean;
+
+
+  // is validate can be nullable because it might not be provided in case we want to simply update or create a paragraph, but it should be provided to validate a paragarph
+  @Field({ nullable: true })
+  isValidate!: boolean;
+  // TODO delete if tested and not needed
+  /* 
+    @Field()
+    author!: string; */
+}
+
+
+@ArgsType()
+class CreateParagraph extends FlashcardModelGQL {
+
+  @Field(() => ID)
+  classroomId!: string;
+
+  @Field(() => ID)
+  subjectId!: string;
+
+  @Field(() => ID)
+  flashcardId!: string;
+
+  @Field(() => ID)
+  subtitleId!: string
+
+  @Field(() => ParagraphInput)
+  paragraph!: ParagraphInput;
+}
+
+
+
+
+
+
+// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 
@@ -165,11 +167,11 @@ class CreateFlahsCard implements Partial<FlashcardModelGQL> {
 export default class FlashcardResolver {
 
   // Private method to get a classroom by providing its id
-  //= ================================================
-  private async getClassroomById(classroomId: string) {
+  // =================================================
+  private async getClassroomById(classroomId: string): Promise<iClassroom | null> {
     try {
       const classroom = await classroomModel.findOne({ _id: classroomId });
-      return classroom
+      return classroom;
     }
     catch {
       throw new ApolloError("cannot find classroom")
@@ -177,26 +179,28 @@ export default class FlashcardResolver {
   }
 
   // private method to get subject located in a classroom by providing classroom object and subjectId
-  //= ================================================
-  private getSubjectById(classroom: any, subjectId: string) {
+  // =================================================
+  private getSubjectById(classroom: iClassroom, subjectId: string): iSubject | undefined {
     const subject = classroom.subject.find(
-      (currentSubject: any) => currentSubject._id == subjectId
+      // eslint-disable-next-line eqeqeq
+      (currentSubject: iSubject) => currentSubject.subjectId == subjectId
     )
-    return subject;
+    return subject
   }
 
   // private method to get a flashcard by providing subject object and flashcard id
-  //= ================================================
-  private getFlashcardById(subject: any, flashcardId: string) {
+  // =================================================
+  private getFlashcardById(subject: iSubject, flashcardId: string): iFlashcard | undefined {
     const flashcard = subject.flashcard.find(
-      (currentFlashcard: any) => currentFlashcard._id == flashcardId
+      // eslint-disable-next-line eqeqeq
+      (currentFlashcard: iFlashcard) => currentFlashcard._id == flashcardId
     )
     return flashcard;
   }
 
   // private method to get a flashcard by providing subject object and flashcard id
-  //= ================================================
-  private getSubtitleById(flashcard: any, subtitleId: string) {
+  // =================================================
+  private getSubtitleById(flashcard: iFlashcard, subtitleId: string): iSubtitle | undefined {
     const subtitle = flashcard.subtitle.find(
       (currentSubtitle: any) => currentSubtitle._id == subtitleId
     )
@@ -204,10 +208,11 @@ export default class FlashcardResolver {
   }
 
   // private method to get a paragraph by providing its id and subtitle object
-  //= ================================================
-  private getParagraphById(subtitle: any, paragraphId: string) {
+  // =================================================
+  private getParagraphById(subtitle: iSubtitle, paragraphId: string) : iParagraph | undefined {
     const paragrpah = subtitle.paragraph.find(
-      (currentParagraph: any) => currentParagraph._id == paragraphId
+      // eslint-disable-next-line eqeqeq
+      (currentParagraph: iParagraph) => currentParagraph._id == paragraphId
     )
     return paragrpah
   }
@@ -335,7 +340,17 @@ export default class FlashcardResolver {
         {
           new: true,
           projection: 'subject',
-        },
+        }
+      )
+
+
+      const updatedSubject = classroom && classroom.subject.filter((singleSubject: any) => singleSubject.subjectId === subjectId)[0];
+      const createdFlashcard = updatedSubject && updatedSubject.flashcard.filter((singleFlashcard: any) => singleFlashcard.title === title)[0]
+      return createdFlashcard;
+    }
+    catch (error) {
+      throw new ApolloError(
+        'Could not create flashcard',
       );
 
       const updatedSubject = classroom.subject.filter(
@@ -369,7 +384,7 @@ export default class FlashcardResolver {
   ) {
 
 
-    let classroom;
+    let classroom: any;
 
     try {
       classroom = await this.getClassroomById(classroomId);
@@ -379,16 +394,31 @@ export default class FlashcardResolver {
     }
 
     const subject = this.getSubjectById(classroom, subjectId);
-    const flashcard = this.getFlashcardById(subject, flashcardId);
-    title && (flashcard.title = title);
-    ressource && (flashcard.ressource = ressource)
-    tag && (flashcard.tag = tag)
+    const flashcard = subject && this.getFlashcardById(subject, flashcardId);
 
-    const modifyExistingSubtitle = (subtitle: SubtitleInput): Subtitle => {
-      const subtitleToUpdate: Subtitle = this.getSubtitleById(flashcard, subtitle.subtitleId);
-      subtitleToUpdate.title = subtitle.title
-      subtitleToUpdate.position = subtitle.position
-      return subtitleToUpdate;
+
+    if (flashcard) {
+      if (title) {
+        flashcard.title = title
+      }
+      if (ressource) {
+        flashcard.ressource = ressource
+      }
+      if (tag) {
+        flashcard.tag = tag
+      }
+    }
+
+
+    const modifyExistingSubtitle = (givenSubtitle: SubtitleInput) : iSubtitle => {
+      const subtitleToUpdate = flashcard && this.getSubtitleById(flashcard, givenSubtitle.subtitleId);
+      if(subtitleToUpdate){
+        subtitleToUpdate.title = givenSubtitle.title
+        subtitleToUpdate.position = givenSubtitle.position
+        return subtitleToUpdate;
+      }
+      // if no subtitleToUpdate then return the givenSubtitel
+      return givenSubtitle
     }
 
     const isValidSubtitlesPosition = (subtitles: Subtitle[]): boolean => {
@@ -399,8 +429,8 @@ export default class FlashcardResolver {
       return hasDublicates;
     }
 
-    //we will check if some subtitle has subtitleId attribute, if yes then modify them without changing their paragraphs otherwise create them
-    if (subtitle) {
+    // we will check if some subtitle has subtitleId attribute, if yes then modify them without changing their paragraphs otherwise create them
+    if (subtitle && flashcard) {
       const updatedSubtitle: Subtitle | any = [];
       subtitle.filter((singleSubtitle: SubtitleInput) => {
         if (singleSubtitle.subtitleId) {
@@ -446,14 +476,14 @@ export default class FlashcardResolver {
   ) {
 
 
-    const classroom = await this.getClassroomById(classroomId);
-    const subject = this.getSubjectById(classroom, subjectId);
-    const flashcard = this.getFlashcardById(subject, flashcardId);
-    const subtitle = this.getSubtitleById(flashcard, subtitleId);
+    const classroom : any = await this.getClassroomById(classroomId);
+    const subject = classroom && this.getSubjectById(classroom, subjectId);
+    const flashcard = subject && this.getFlashcardById(subject, flashcardId);
+    const subtitle : any = flashcard && this.getSubtitleById(flashcard, subtitleId);
 
 
-    //if no paragraph.id is provided then create a new paragraph
-    if (!paragraph.paragraphId) {
+    // if no paragraph.id is provided then create a new paragraph
+    if (!paragraph.paragraphId && subtitle) {
       if (!paragraph.text) {
         throw new ApolloError("Paragraph text is required")
       }
@@ -503,7 +533,7 @@ export default class FlashcardResolver {
 
     //if a paragraph id is provided then update the existing paragraph
     else if (paragraph.paragraphId) {
-      const paragraphToUpdate = this.getParagraphById(subtitle, paragraph.paragraphId);
+      const paragraphToUpdate : any = this.getParagraphById(subtitle, paragraph.paragraphId);
 
       //if there is only isValidate in paragraph object then it switch ti validate true
       //TODO check user here, if the same use who created the paragraph then do not validate
