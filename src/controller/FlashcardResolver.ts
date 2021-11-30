@@ -1,7 +1,7 @@
 import { Resolver, Arg, Mutation, Query, InputType, Field, ArgsType, Args, Ctx } from 'type-graphql';
 import { ApolloError } from 'apollo-server-express';
 import mongoose from 'mongoose';
-import classroomModel from '../model/classroom';
+import ClassroomModel from '../model/classroom';
 import FlashcardModelGQL, { Ressource, Subtitle } from '../model/graphql/flashcardModelGQL';
 
 
@@ -51,7 +51,7 @@ class CreateSubtitle extends Subtitle {
 export default class FlashcardResolver {
   @Query((returns) => [FlashcardModelGQL])
   public async getAllFlashcards(@Arg('classroomId') classroomId: string) {
-    const classroom = await classroomModel.findById(classroomId);
+    const classroom = await ClassroomModel.findById(classroomId);
 
     if (!classroom) {
       throw new ApolloError('Classroom not found');
@@ -70,7 +70,7 @@ export default class FlashcardResolver {
     @Arg('flashcardId') flashcardId: string,
     @Arg('classroomId') classroomId: string,
   ) {
-    const classroom = await classroomModel.findOne(
+    const classroom = await ClassroomModel.findOne(
       {
         _id: classroomId,
         subject: {
@@ -90,7 +90,7 @@ export default class FlashcardResolver {
 
     // je laisse ça ici pour continuer de chercher sur du temps libre
 
-    // const class2 = await classroomModel
+    // const class2 = await ClassroomModel
     //   .aggregate()
     //   .match({
     //     _id: mongoose.Types.ObjectId(classroomId),
@@ -117,7 +117,7 @@ export default class FlashcardResolver {
   }
 
   // made for test and add quickly flashcard, return is not correct
-  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   @Mutation((returns) => FlashcardModelGQL)
   public async createFlashcard(
     @Args() {
@@ -138,11 +138,11 @@ export default class FlashcardResolver {
 
 
     // Check if flashcard is exist, if yes throw error otherwise continu
-    const isExistFlashcard = await classroomModel.findOne(
+    const isExistFlashcard = await ClassroomModel.findOne(
       {
         _id: classroomId,
         subject: {
-          $elemMatch: { flashcard: { $elemMatch: { title: title } } },
+          $elemMatch: { flashcard: { $elemMatch: { title } } },
         },
       },
     );
@@ -151,17 +151,17 @@ export default class FlashcardResolver {
     }
 
     const newFlashCard = {
-      title: title,
-      tag: tag,
-      subtitle: subtitle,
-      ressource: ressource
+      title,
+      tag,
+      subtitle,
+      ressource
     }
 
     // On peut faire une projection sur l'objet crée mais pour avoir un objet imbirqué qu'on a crée comme dans ce cas il faudrait filtrer les résultat ...
-    //https://stackoverflow.com/questions/54082166/mongoose-return-only-updated-item-using-findoneandupdate-and-array-filters
+    // https://stackoverflow.com/questions/54082166/mongoose-return-only-updated-item-using-findoneandupdate-and-array-filters
 
     try {
-      const classroom = await classroomModel.findOneAndUpdate(
+      const classroom = await ClassroomModel.findOneAndUpdate(
         { _id: classroomId, "subject.subjectId": subjectId },
         { $push: { 'subject.$.flashcard': newFlashCard } },
         {
@@ -170,13 +170,9 @@ export default class FlashcardResolver {
         }
       )
 
-      const updatedSubject = classroom.subject.filter((singleSubject: any) => {
-        return singleSubject.subjectId == subjectId
-      })[0];
+      const updatedSubject = classroom.subject.filter((singleSubject: any) => singleSubject.subjectId === subjectId)[0];
 
-      const createdFlashcard = updatedSubject.flashcard.filter((singleFlashcard: any) => {
-        return singleFlashcard.title == title
-      })[0]
+      const createdFlashcard = updatedSubject.flashcard.filter((singleFlashcard: any) => singleFlashcard.title === title)[0]
       return createdFlashcard;
     }
     catch (error) {

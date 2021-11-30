@@ -1,21 +1,23 @@
 import { Request } from 'express';
 import jwt from 'jsonwebtoken';
 import config from '../config/env.dev';
+import {ITokenContext} from './interface';
 
 type ctxParams = {
   req: Request;
 };
 
-export default async function ({ req }: ctxParams) {
+export default async function contextToken ({ req }: ctxParams): Promise<Partial<ITokenContext>> {
   const token = req?.headers?.authorization || '';
   if (!token.length) return {};
-  let user = {};
+  let user:Partial<ITokenContext> = {};
   try {
-    const { data, exp, iat }: any = await jwt.verify(token, config.token);
+    const { data, exp }: any = await jwt.verify(token, config.token);
     if (Date.now() >= exp) throw new Error('Token expiré');
     user = { ...data };
   } catch (err) {
-  } finally {
-    return { user };
+    console.log(err);
   }
+
+  return user ;
 }

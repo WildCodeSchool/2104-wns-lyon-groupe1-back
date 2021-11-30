@@ -1,23 +1,27 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import userModel from '../model/user';
 import { Resolver, Arg, Mutation, Query, Ctx } from 'type-graphql';
+import { ApolloError } from 'apollo-server-express';
+import UserModel from '../model/user';
 import config from '../config/env.dev';
 import { ITokenContext } from '../utils/interface';
 import UserModelGQL from '../model/graphql/userModelGQL';
-import { ApolloError } from 'apollo-server-express';
 
 @Resolver(UserModelGQL)
 export default class UserAuthResolver {
-  //get user by id, @@@ don't delete this, because we should have at least one query in a resolver @@
-  @Query((returns) => UserModelGQL)
-  public async getUser(@Arg('_id') _id: string) {
-    const user = userModel.findOne({ _id: _id });
-    return user;
-  }
+  // get user by id, @@@ don't delete this, because we should have at least one query in a resolver @@
 
-  //TODO user change password
-  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  // Cette query semble inutile et inutilisé, on récupére l'utilisateur avec checkLogin en vérifiant que le token est valide
+
+  // @Query((returns) => UserModelGQL)
+  // public async getUser(@Arg('_id') _id: string) {
+  //   const user = userModel.findOne({ _id });
+  //   return user;
+  // }
+
+  // TODO user change password
+  // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
   @Mutation((returns) => Boolean)
   public async changePassword(
     @Arg('newPassword') newPassword: string,
@@ -28,7 +32,7 @@ export default class UserAuthResolver {
     if (!user.id) throw new Error('401 - Unauthorized');
 
     try {
-      const userInfo = await userModel.findById(user.id);
+      const userInfo = await UserModel.findById(user.id);
 
       if (!userInfo) throw new Error();
 
@@ -36,7 +40,7 @@ export default class UserAuthResolver {
         throw new Error();
 
       const hashedPassword = await bcrypt.hash(newPassword, 14);
-      await userModel.findOneAndUpdate(
+      await UserModel.findOneAndUpdate(
         { _id: user.id },
         { $set: { password: hashedPassword } },
       );
@@ -56,8 +60,8 @@ export default class UserAuthResolver {
     @Arg('password') password: string,
   ) {
     try {
-      const user = await userModel.findOne({ mail });
-
+      const user = await UserModel.findOne({ mail });
+      console.log(user);
       if (!user) throw new Error();
       if (!(await bcrypt.compare(password, user.password))) throw new Error();
 
@@ -83,7 +87,7 @@ export default class UserAuthResolver {
     const { user } = ctx;
 
     try {
-      const userInfo = await userModel.findOne({ mail: user.mail });
+      const userInfo = await UserModel.findOne({ mail: user.mail });
 
       if (!userInfo) throw new Error();
 

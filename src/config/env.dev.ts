@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+
 dotenv.config();
 
 const options = {
@@ -8,7 +9,9 @@ const options = {
   useFindAndModify: false,
 };
 
-const db = `mongodb://${process.env.NODE_ENV === 'production' ? 'mongodb' : 'localhost'}:27017/wiki-notes`;
+const db = `mongodb://${
+  process.env.NODE_ENV === 'production' ? 'mongodb' : 'localhost'
+}:27017/wiki-notes`;
 
 export interface IConfig {
   db: string;
@@ -20,8 +23,8 @@ export interface IConfig {
 }
 
 const config: IConfig = {
-  db: db,
-  options: options,
+  db,
+  options,
   serverPort: 5000,
   serverStart: true,
   verbose: true,

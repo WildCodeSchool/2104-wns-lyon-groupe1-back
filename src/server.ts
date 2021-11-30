@@ -3,10 +3,10 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import { ApolloServer } from 'apollo-server-express';
-import verifToken from './utils/ctxTokenAuth';
 import mongoose from 'mongoose';
 import { buildSchema } from 'type-graphql';
 import { GraphQLSchema } from 'graphql';
+import verifToken from './utils/ctxTokenAuth';
 import { IConfig } from './config/env.dev';
 import UserAuthResolver from './controller/UserAuthResolver';
 import ClassroomResolver from './controller/ClassroomResolver';
@@ -38,10 +38,11 @@ export default async function startServer(
       console.log('launch');
     });
 
-    if (config.verbose)
+    if (config.verbose) {
       console.log(
-        'Apollo server started at: http://localhost:' + config.serverPort + '/',
+        `Apollo server started at: http://localhost:${config.serverPort}/`,
       );
+    }
   }
   // et on démarre mongoose
   await mongoose.connect(config.db, config.options);

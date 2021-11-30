@@ -5,4 +5,4 @@ import startServer from './server';
 
 dotenv.config();
 
-startServer(config)
+startServer(config);

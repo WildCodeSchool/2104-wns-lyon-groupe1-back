@@ -17,8 +17,8 @@ export interface IConfig {
 }
 
 const config: IConfig = {
-  db: db,
-  options: options,
+  db,
+  options,
   serverPort: 5001,
   serverStart: false,
   verbose: false,
