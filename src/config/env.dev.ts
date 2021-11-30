@@ -1,8 +1,11 @@
 import dotenv from 'dotenv';
+import { TOptions } from '../utils/types'
 
 dotenv.config();
 
-const options = {
+
+
+const options:TOptions = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useCreateIndex: true,
@@ -15,7 +18,7 @@ const db = `mongodb://${
 
 export interface IConfig {
   db: string;
-  options: any;
+  options: TOptions;
   serverPort: number;
   serverStart: boolean;
   verbose: boolean;

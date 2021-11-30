@@ -10,7 +10,7 @@ export default class ClassroomResolver {
   // get all classrooms
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-  @Query((returns) => [ClassroomModelGQL])
+  @Query(() => [ClassroomModelGQL])
   public async getAllClassrooms() {
     const classrooms = await ClassroomModel.find();
     return classrooms;
@@ -19,7 +19,7 @@ export default class ClassroomResolver {
   // get classroom
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-  @Query((returns) => ClassroomModelGQL)
+  @Query(() => ClassroomModelGQL)
   public async getClassroom(@Arg('id') id: string) {
     const classroom = await ClassroomModel.findOne({
       _id: id,
@@ -32,11 +32,11 @@ export default class ClassroomResolver {
 
   // add classroom
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-  @Mutation((returns) => ClassroomModelGQL)
+  @Mutation(() => ClassroomModelGQL)
   public async addClassroom(
     @Arg('classroomName') classroomName: string,
     @Arg('academicYear') academicYear: string,
-    @Arg('studentMails', (type) => [String]) studentMails: [string],
+    @Arg('studentMails', () => [String]) studentMails: [string],
   ) {
     if (!studentMails.length)
       throw new ApolloError(
@@ -98,7 +98,7 @@ export default class ClassroomResolver {
   // add student to classroom
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-  @Mutation((returns) => ClassroomModelGQL)
+  @Mutation(() => ClassroomModelGQL)
   public async addStudentToClassroom(
     @Arg('studentMail') studentMail: string,
     @Arg('id') id: string,

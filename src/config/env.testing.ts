@@ -1,4 +1,6 @@
-const options = {
+import {TOptions} from '../utils/types';
+
+const options:TOptions = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useCreateIndex: true,
@@ -9,7 +11,7 @@ const db = 'mongodb://127.0.0.1:27017/wiki-notes-test';
 
 export interface IConfig {
   db: string;
-  options: any;
+  options: TOptions;
   serverPort: number;
   serverStart: boolean;
   verbose: boolean;
