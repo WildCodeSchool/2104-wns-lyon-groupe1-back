@@ -3,7 +3,6 @@ import { ApolloError } from 'apollo-server-express';
 import classroomModel from '../model/classroom';
 import FlashcardModelGQL, { Paragraph, Ressource, Subtitle } from '../model/graphql/flashcardModelGQL';
 import getCurrentLocalDateParis from '../utils/getCurrentLocalDateParis';
-import ClassroomModelGQL from '../model/graphql/classroomModelGQL';
 import { iClassroom, iFlashcard, iParagraph, iSubject, iSubtitle } from '../utils/types/classroomTypes';
 
 
@@ -180,7 +179,7 @@ export default class FlashcardResolver {
 
   // private method to get a paragraph by providing its id and subtitle object
   // =================================================
-  private getParagraphById(subtitle: iSubtitle, paragraphId: string) : iParagraph | undefined {
+  private getParagraphById(subtitle: iSubtitle, paragraphId: string): iParagraph | undefined {
     const paragrpah = subtitle.paragraph.find(
       // eslint-disable-next-line eqeqeq
       (currentParagraph: iParagraph) => currentParagraph._id == paragraphId
@@ -191,7 +190,7 @@ export default class FlashcardResolver {
 
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   @Query(() => [FlashcardModelGQL])
-  public async getAllFlashcards(@Arg('classroomId') classroomId: string) {
+  public async getAllFlashcards(@Arg('classroomId') classroomId: string): Promise<iFlashcard | null> {
     const classroom = await classroomModel.findById(classroomId);
 
     if (!classroom) {
@@ -206,11 +205,12 @@ export default class FlashcardResolver {
     }, []);
   }
 
-  @Query((returns) => FlashcardModelGQL)
+  // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  @Query(() => FlashcardModelGQL)
   public async getFlashcard(
     @Arg('flashcardId') flashcardId: string,
     @Arg('classroomId') classroomId: string,
-  ) {
+  ): Promise<iFlashcard | null> {
     const classroom = await classroomModel.findOne(
       {
         _id: classroomId,
@@ -233,7 +233,7 @@ export default class FlashcardResolver {
   // Create a flashcard
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-  @Mutation((returns) => FlashcardModelGQL)
+  @Mutation(() => FlashcardModelGQL)
   public async createFlashcard(
     @Args() {
       classroomId,
@@ -244,7 +244,7 @@ export default class FlashcardResolver {
       subtitle
     }
       : CreateFlahscard
-  ) {
+  ): Promise<iFlashcard | null> {
     if (title === "" || tag.length === 0 || ressource.length === 0 || subtitle.length === 0) {
       throw new ApolloError(
         'title / tag / ressources / subtitles are required',
@@ -301,7 +301,7 @@ export default class FlashcardResolver {
   //  update flashcard by providing a valid flashcardId, classroomId, subjectId
   // TODO handle subtitle position
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-  @Mutation((returns) => FlashcardModelGQL)
+  @Mutation(() => FlashcardModelGQL)
   public async updateFlashcard(
     @Args() {
       classroomId,
@@ -313,7 +313,7 @@ export default class FlashcardResolver {
       subtitle
     }
       : UpdateFlashcard
-  ) {
+  ): Promise<iFlashcard | null> {
 
 
     let classroom: any;
@@ -328,23 +328,9 @@ export default class FlashcardResolver {
     const subject = this.getSubjectById(classroom, subjectId);
     const flashcard = subject && this.getFlashcardById(subject, flashcardId);
 
-
-    if (flashcard) {
-      if (title) {
-        flashcard.title = title
-      }
-      if (ressource) {
-        flashcard.ressource = ressource
-      }
-      if (tag) {
-        flashcard.tag = tag
-      }
-    }
-
-
-    const modifyExistingSubtitle = (givenSubtitle: SubtitleInput) : iSubtitle => {
+    const modifyExistingSubtitle = (givenSubtitle: SubtitleInput): iSubtitle => {
       const subtitleToUpdate = flashcard && this.getSubtitleById(flashcard, givenSubtitle.subtitleId);
-      if(subtitleToUpdate){
+      if (subtitleToUpdate) {
         subtitleToUpdate.title = givenSubtitle.title
         subtitleToUpdate.position = givenSubtitle.position
         return subtitleToUpdate;
@@ -353,15 +339,28 @@ export default class FlashcardResolver {
       return givenSubtitle
     }
 
-    const isValidSubtitlesPosition = (subtitles: Subtitle[]): boolean => {
+    const isValidSubtitlesPosition = (subtitles: iSubtitle[]): boolean => {
       const seen = new Set();
       const hasDublicates = subtitles.some((singleSubtitle) => seen.size === seen.add(singleSubtitle.position).size)
       return hasDublicates;
     }
 
+    if (!flashcard) {
+      throw new ApolloError("flashcard required");
+    }
+
+    if (title) {
+      flashcard.title = title
+    }
+    if (ressource) {
+      flashcard.ressource = ressource
+    }
+    if (tag) {
+      flashcard.tag = tag
+    }
     // we will check if some subtitle has subtitleId attribute, if yes then modify them without changing their paragraphs otherwise create them
-    if (subtitle && flashcard) {
-      const updatedSubtitle: Subtitle | any = [];
+    if (subtitle) {
+      const updatedSubtitle: iSubtitle[] = [];
       subtitle.filter((singleSubtitle: SubtitleInput) => {
         if (singleSubtitle.subtitleId) {
           updatedSubtitle.push(modifyExistingSubtitle(singleSubtitle));
@@ -379,11 +378,9 @@ export default class FlashcardResolver {
         flashcard.subtitle = updatedSubtitle;
       }
     }
-
     try {
       await classroomModel.updateOne(classroom);
-      return flashcard
-
+      return flashcard;
     }
     catch {
       throw new ApolloError("ERROR cannot update flashcard paragraphs")
@@ -404,13 +401,13 @@ export default class FlashcardResolver {
       paragraph
     }
       : CreateParagraph
-  ) {
+  ): Promise<iFlashcard | null> {
 
 
-    const classroom : any = await this.getClassroomById(classroomId);
+    const classroom: any = await this.getClassroomById(classroomId);
     const subject = classroom && this.getSubjectById(classroom, subjectId);
     const flashcard = subject && this.getFlashcardById(subject, flashcardId);
-    const subtitle : any = flashcard && this.getSubtitleById(flashcard, subtitleId);
+    const subtitle: any = flashcard && this.getSubtitleById(flashcard, subtitleId);
 
 
     // if no paragraph.id is provided then create a new paragraph
@@ -441,7 +438,7 @@ export default class FlashcardResolver {
 
     // if a paragraph id is provided then update the existing paragraph
     else if (paragraph.paragraphId) {
-      const paragraphToUpdate : any = this.getParagraphById(subtitle, paragraph.paragraphId);
+      const paragraphToUpdate: any = this.getParagraphById(subtitle, paragraph.paragraphId);
 
       // if there is only isValidate in paragraph object then it switch ti validate true
       // TODO check user here, if the same use who created the paragraph then do not validate
