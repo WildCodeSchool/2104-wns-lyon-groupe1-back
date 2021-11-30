@@ -4,6 +4,7 @@ import userModel from '../model/user';
 import ClassroomModel from '../model/classroom';
 import ClassroomModelGQL from '../model/graphql/classroomModelGQL';
 import isMail from '../utils/isMail';
+import { iClassroom } from '../utils/types/classroomTypes';
 
 @Resolver(ClassroomModelGQL)
 export default class ClassroomResolver {
@@ -11,16 +12,20 @@ export default class ClassroomResolver {
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
   @Query(() => [ClassroomModelGQL])
-  public async getAllClassrooms() {
-    const classrooms = await ClassroomModel.find();
-    return classrooms;
+  public async getAllClassrooms(): Promise<iClassroom[] | null> {
+    try {
+      const classrooms = await ClassroomModel.find();
+      return classrooms;
+    }
+    catch {
+      throw new ApolloError("Error getting classrooms")
+    }
   }
-
   // get classroom
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
   @Query(() => ClassroomModelGQL)
-  public async getClassroom(@Arg('id') id: string) {
+  public async getClassroom(@Arg('id') id: string) : Promise<iClassroom | null> {
     const classroom = await ClassroomModel.findOne({
       _id: id,
     });
@@ -37,7 +42,7 @@ export default class ClassroomResolver {
     @Arg('classroomName') classroomName: string,
     @Arg('academicYear') academicYear: string,
     @Arg('studentMails', () => [String]) studentMails: [string],
-  ) {
+  ) : Promise<iClassroom | null> {
     if (!studentMails.length)
       throw new ApolloError(
         'Only one student mail is required to create a classroom.',
@@ -66,7 +71,7 @@ export default class ClassroomResolver {
 
     try {
       // create a new classroom with the wanted values
-      const newClassroom = await new ClassroomModel({
+      const newClassroom = new ClassroomModel({
         name: classroomName,
         year: academicYear,
         student: newStudents,
@@ -102,7 +107,7 @@ export default class ClassroomResolver {
   public async addStudentToClassroom(
     @Arg('studentMail') studentMail: string,
     @Arg('id') id: string,
-  ) {
+  ) : Promise<iClassroom | null> {
     // =============================================
     // check if student exists and is not a teacher and student not in the classroom
     const student = await userModel.findOne({
