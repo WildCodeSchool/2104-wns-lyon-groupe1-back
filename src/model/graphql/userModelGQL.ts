@@ -18,16 +18,16 @@ export default class UserModelGQL {
   id = '';
 
   @Field()
-  mail = '';
+  mail!: string;
 
   @Field()
-  firstname = '';
+  firstname!: string;
 
   @Field()
-  lastname = '';
+  lastname!: string;
 
   @Field()
-  password = '';
+  password!: string;
 
   @Field()
   isTeacher!: boolean;
