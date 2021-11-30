@@ -1,28 +1,27 @@
-import userModel from '../model/user';
-import classroomModel from '../model/classroom';
-import { Query, Mutation, Resolver, Arg, Ctx } from 'type-graphql';
+import { Query, Mutation, Resolver, Arg } from 'type-graphql';
 import { ApolloError } from 'apollo-server-express';
-import { ClassroomModelGQL } from '../model/graphql/classroomModelGQL';
+import userModel from '../model/user';
+import ClassroomModel from '../model/classroom';
+import ClassroomModelGQL from '../model/graphql/classroomModelGQL';
 import isMail from '../utils/isMail';
-import { ITokenContext } from '../utils/interface';
 
 @Resolver(ClassroomModelGQL)
 export default class ClassroomResolver {
-  //get all classrooms
+  // get all classrooms
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
   @Query((returns) => [ClassroomModelGQL])
   public async getAllClassrooms() {
-    const classrooms = await classroomModel.find();
+    const classrooms = await ClassroomModel.find();
     return classrooms;
   }
 
-  //get classroom
+  // get classroom
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
   @Query((returns) => ClassroomModelGQL)
   public async getClassroom(@Arg('id') id: string) {
-    const classroom = await classroomModel.findOne({
+    const classroom = await ClassroomModel.findOne({
       _id: id,
     });
     if (!classroom) {
@@ -31,7 +30,7 @@ export default class ClassroomResolver {
     return classroom;
   }
 
-  //add classroom
+  // add classroom
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   @Mutation((returns) => ClassroomModelGQL)
   public async addClassroom(
@@ -43,12 +42,12 @@ export default class ClassroomResolver {
       throw new ApolloError(
         'Only one student mail is required to create a classroom.',
       );
-    //make unique Mails
-    //==================================
+    // make unique Mails
+    // ==================================
     const studentMailsUnique = [...new Set(studentMails)];
-    //==================================
+    // ==================================
 
-    let students = await userModel.find({
+    const students = await userModel.find({
       mail: { $in: studentMailsUnique },
       isTeacher: false,
     });
@@ -66,17 +65,17 @@ export default class ClassroomResolver {
     }));
 
     try {
-      //create a new classroom with the wanted values
-      const newClassroom = await new classroomModel({
+      // create a new classroom with the wanted values
+      const newClassroom = await new ClassroomModel({
         name: classroomName,
         year: academicYear,
         student: newStudents,
       });
 
-      //map over wanted student and add classroom in each one
+      // map over wanted student and add classroom in each one
       studentMailsUnique.map(async (mail) => {
         await userModel.findOneAndUpdate(
-          { mail: mail },
+          { mail },
           {
             $push: {
               classroom: {
@@ -88,7 +87,7 @@ export default class ClassroomResolver {
           },
         );
       });
-      //save classroom
+      // save classroom
       return await newClassroom.save();
     } catch (error) {
       console.log(error);
@@ -96,7 +95,7 @@ export default class ClassroomResolver {
     }
   }
 
-  //add student to classroom
+  // add student to classroom
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
   @Mutation((returns) => ClassroomModelGQL)
@@ -104,8 +103,8 @@ export default class ClassroomResolver {
     @Arg('studentMail') studentMail: string,
     @Arg('id') id: string,
   ) {
-    //=============================================
-    //check if student exists and is not a teacher and student not in the classroom
+    // =============================================
+    // check if student exists and is not a teacher and student not in the classroom
     const student = await userModel.findOne({
       mail: studentMail,
       isTeacher: false,
@@ -120,7 +119,7 @@ export default class ClassroomResolver {
       throw new ApolloError('Email not in correct syntax ***@***.**');
     }
 
-    const classRoom = await classroomModel.findOneAndUpdate(
+    const classRoom = await ClassroomModel.findOneAndUpdate(
       { _id: id },
       {
         $push: {
@@ -143,6 +142,6 @@ export default class ClassroomResolver {
       },
     );
 
-    return await classRoom;
+    return classRoom;
   }
 }

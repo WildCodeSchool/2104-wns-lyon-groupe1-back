@@ -2,24 +2,6 @@ import { Field, ObjectType, ID } from 'type-graphql';
 import FlashcardModelGQL from './flashcardModelGQL';
 
 @ObjectType()
-export class ClassroomModelGQL {
-  @Field((type) => ID)
-  id!: string;
-
-  @Field()
-  name!: string;
-
-  @Field()
-  year!: string;
-
-  @Field((type) => [StudentModelGQL])
-  student!: StudentModelGQL[];
-
-  @Field((type) => [Subject])
-  subject!: Subject[];
-}
-
-@ObjectType()
 class Subject {
   @Field()
   subjectId!: string;
@@ -41,4 +23,21 @@ class StudentModelGQL {
 
   @Field()
   mail!: string;
+}
+@ObjectType()
+export default class ClassroomModelGQL {
+  @Field((type) => ID)
+  id!: string;
+
+  @Field()
+  name!: string;
+
+  @Field()
+  year!: string;
+
+  @Field((type) => [StudentModelGQL])
+  student!: StudentModelGQL[];
+
+  @Field((type) => [Subject])
+  subject!: Subject[];
 }
