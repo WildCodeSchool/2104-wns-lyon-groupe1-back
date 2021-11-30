@@ -1,21 +1,33 @@
 import { Field, ID, ObjectType } from 'type-graphql';
 
 @ObjectType()
+class Classroom {
+  @Field((type) => ID)
+  classroomId!: string;
+
+  @Field()
+  name!: string;
+
+  @Field()
+  year!: string;
+}
+
+@ObjectType()
 export default class UserModelGQL {
   @Field((type) => ID)
-  id: string = '';
+  id = '';
 
   @Field()
-  mail: string = '';
+  mail = '';
 
   @Field()
-  firstname: string = '';
+  firstname = '';
 
   @Field()
-  lastname: string = '';
+  lastname = '';
 
   @Field()
-  password: string = '';
+  password = '';
 
   @Field()
   isTeacher!: boolean;
@@ -27,14 +39,3 @@ export default class UserModelGQL {
   classroom!: Classroom[];
 }
 
-@ObjectType()
-class Classroom {
-  @Field((type) => ID)
-  classroomId!: string;
-
-  @Field()
-  name!: string;
-
-  @Field()
-  year!: string;
-}

@@ -7,7 +7,7 @@
         "test": "jest",
         "start": "npm run dev",
         "build": "tsc -p .",
-        "lint": "eslint */*.ts & echo 'lint complete'",
+        "lint": "eslint ./src/**/*.ts & echo 'lint complete'",
         "dev": "ts-node-dev --transpile-only --respawn  ./src/index.ts",
         "prod": "node ./build/src/index.js",
         "debug": "tsc && node --inspect ./build/src/index.js"
