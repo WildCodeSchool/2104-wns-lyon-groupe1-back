@@ -22,7 +22,7 @@ export default class UserAuthResolver {
   // TODO user change password
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-  @Mutation((returns) => Boolean)
+  @Mutation(() => Boolean)
   public async changePassword(
     @Arg('newPassword') newPassword: string,
     @Arg('oldPassword') oldPassword: string,
@@ -54,7 +54,7 @@ export default class UserAuthResolver {
     }
   }
 
-  @Mutation((returns) => UserModelGQL)
+  @Mutation(() => UserModelGQL)
   public async login(
     @Arg('mail') mail: string,
     @Arg('password') password: string,
@@ -82,7 +82,7 @@ export default class UserAuthResolver {
     }
   }
 
-  @Mutation((returns) => UserModelGQL)
+  @Mutation(() => UserModelGQL)
   public async checklogin(@Ctx() ctx: ITokenContext) {
     const { user } = ctx;
 

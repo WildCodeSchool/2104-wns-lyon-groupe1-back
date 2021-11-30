@@ -6,7 +6,7 @@ class Subject {
   @Field()
   subjectId!: string;
 
-  @Field((type) => [FlashcardModelGQL])
+  @Field(() => [FlashcardModelGQL])
   flashcard!: FlashcardModelGQL[];
 }
 
@@ -26,7 +26,7 @@ class StudentModelGQL {
 }
 @ObjectType()
 export default class ClassroomModelGQL {
-  @Field((type) => ID)
+  @Field(() => ID)
   id!: string;
 
   @Field()
@@ -35,9 +35,9 @@ export default class ClassroomModelGQL {
   @Field()
   year!: string;
 
-  @Field((type) => [StudentModelGQL])
+  @Field(() => [StudentModelGQL])
   student!: StudentModelGQL[];
 
-  @Field((type) => [Subject])
+  @Field(() => [Subject])
   subject!: Subject[];
 }

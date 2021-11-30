@@ -17,7 +17,7 @@ class Question {
   @Field()
   text!: string;
 
-  @Field((type) => [Answer])
+  @Field(() => [Answer])
   answer!: Answer[];
 
   @Field()
@@ -65,27 +65,27 @@ export abstract class Subtitle {
   @Field()
   position!: number;
 
-  @Field((type) => [Paragraph])
+  @Field(() => [Paragraph])
   paragraph!: Paragraph[];
 }
 
 @ObjectType()
 export default class FlashcardModelGQL {
-  @Field((type) => ID)
+  @Field(() => ID)
   id!: string;
 
   @Field()
   title!: string;
 
-  @Field((type) => [String])
+  @Field(() => [String])
   tag!: string[];
 
-  @Field((type) => [Subtitle])
+  @Field(() => [Subtitle])
   subtitle!: Subtitle[];
 
-  @Field((type) => [Ressource])
+  @Field(() => [Ressource])
   ressource!: Ressource[];
 
-  @Field((type) => [Question])
+  @Field(() => [Question])
   question!: Question[];
 }

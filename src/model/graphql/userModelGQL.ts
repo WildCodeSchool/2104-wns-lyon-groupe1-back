@@ -2,7 +2,7 @@ import { Field, ID, ObjectType } from 'type-graphql';
 
 @ObjectType()
 class Classroom {
-  @Field((type) => ID)
+  @Field(() => ID)
   classroomId!: string;
 
   @Field()
@@ -14,7 +14,7 @@ class Classroom {
 
 @ObjectType()
 export default class UserModelGQL {
-  @Field((type) => ID)
+  @Field(() => ID)
   id!: string;
 
   @Field()
@@ -35,6 +35,6 @@ export default class UserModelGQL {
   @Field()
   token!: string;
 
-  @Field((type) => [Classroom])
+  @Field(() => [Classroom])
   classroom!: Classroom[];
 }
