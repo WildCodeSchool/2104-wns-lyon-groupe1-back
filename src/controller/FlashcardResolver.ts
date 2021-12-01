@@ -11,10 +11,8 @@ import {
   ID
 } from 'type-graphql';
 import { ApolloError } from 'apollo-server-express';
-import mongoose, { Aggregate } from 'mongoose';
 import ClassroomModel from '../model/classroom';
 import { ITokenContext } from '../utils/interface';
-import classroomModel from '../model/classroom';
 import FlashcardModelGQL, { Paragraph, Ressource, Subtitle } from '../model/graphql/flashcardModelGQL';
 import { iClassroom, iFlashcard, iParagraph, iSubject, iSubtitle } from '../utils/types/classroomTypes';
 
@@ -39,28 +37,6 @@ class SubtitleInput extends Subtitle {
   @Field()
   position!: number;
 }
-// {{{{{{{{{{{{{{{{{}}}}}}}}}}}}}}}}}
-@ArgsType()
-class CreateFlahsCard implements Partial<FlashcardModelGQL> {
-  @Field()
-  classroomId!: string;
-
-  @Field()
-  subjectId!: string;
-
-  @Field()
-  title!: string;
-
-  @Field(() => [String])
-  tag!: string[];
-
-  @Field(() => [CreateSubtitle])
-  subtitle!: CreateSubtitle[];
-
-  @Field(() => [CreateRessource])
-  ressource!: CreateRessource[];
-}
-
 
 
 @ArgsType()
@@ -166,7 +142,7 @@ export default class FlashcardResolver {
   // =================================================
   private async getClassroomById(classroomId: string): Promise<iClassroom | null> {
     try {
-      const classroom = await classroomModel.findOne({ _id: classroomId });
+      const classroom = await ClassroomModel.findOne({ _id: classroomId });
       return classroom;
     }
     catch {
@@ -249,7 +225,7 @@ export default class FlashcardResolver {
     @Arg('flashcardId') flashcardId: string,
     @Arg('classroomId') classroomId: string,
     @Ctx() ctx: ITokenContext,
-  ) {
+  ) : Promise<iFlashcard | null> {
     const { user } = ctx;
     console.log(user.id);
 
@@ -284,10 +260,12 @@ export default class FlashcardResolver {
   // Create a flashcard
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
+  // Create a flashcard
+  // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
   @Mutation(() => FlashcardModelGQL)
   public async createFlashcard(
-    @Args()
-    {
+    @Args() {
       classroomId,
       subjectId,
       title,
@@ -297,21 +275,22 @@ export default class FlashcardResolver {
     }
       : CreateFlashcard
   ): Promise<iFlashcard | null> {
-
-    
     if (title === "" || tag.length === 0 || ressource.length === 0 || subtitle.length === 0) {
       throw new ApolloError(
         'title / tag / ressources / subtitles are required',
       );
     }
 
+
     // Check if flashcard is exist, if yes throw error otherwise continu
-    const isExistFlashcard = await ClassroomModel.findOne({
-      _id: classroomId,
-      subject: {
-        $elemMatch: { flashcard: { $elemMatch: { title } } },
+    const isExistFlashcard = await ClassroomModel.findOne(
+      {
+        _id: classroomId,
+        subject: {
+          $elemMatch: { flashcard: { $elemMatch: { title } } },
+        },
       },
-    });
+    );
     if (isExistFlashcard) {
       throw new ApolloError('Flashcard already exist');
     }
@@ -320,15 +299,15 @@ export default class FlashcardResolver {
       title,
       tag,
       subtitle,
-      ressource,
-    };
+      ressource
+    }
 
     // On peut faire une projection sur l'objet crée mais pour avoir un objet imbirqué qu'on a crée comme dans ce cas il faudrait filtrer les résultat ...
     // https://stackoverflow.com/questions/54082166/mongoose-return-only-updated-item-using-findoneandupdate-and-array-filters
 
     try {
       const classroom = await ClassroomModel.findOneAndUpdate(
-        { _id: classroomId, 'subject.subjectId': subjectId },
+        { _id: classroomId, "subject.subjectId": subjectId },
         { $push: { 'subject.$.flashcard': newFlashCard } },
         {
           new: true,
@@ -345,17 +324,6 @@ export default class FlashcardResolver {
       throw new ApolloError(
         'Could not create flashcard',
       );
-
-      const updatedSubject = classroom.subject.filter(
-        (singleSubject: any) => singleSubject.subjectId === subjectId,
-      )[0];
-
-      const createdFlashcard = updatedSubject.flashcard.filter(
-        (singleFlashcard: any) => singleFlashcard.title === title,
-      )[0];
-      return createdFlashcard;
-    } catch (error) {
-      throw new ApolloError('Could not create flashcard');
     }
   }
 
@@ -429,6 +397,7 @@ export default class FlashcardResolver {
         else {
           updatedSubtitle.push(singleSubtitle);
         }
+        return updatedSubtitle;
       })
 
       if (isValidSubtitlesPosition(updatedSubtitle)) {
@@ -439,7 +408,7 @@ export default class FlashcardResolver {
       }
     }
     try {
-      await classroomModel.updateOne(classroom);
+      await ClassroomModel.updateOne(classroom);
       return flashcard;
     }
     catch {
@@ -448,10 +417,11 @@ export default class FlashcardResolver {
   }
 
 
-  //UPDATE flashcard paragraph by providing a paragraph id or CREATE a new paragraph if no paragraph id is provided
-  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-  @Mutation((returns) => FlashcardModelGQL)
-  //TODO paragraph author
+
+  // UPDATE flashcard paragraph by providing a paragraph id or CREATE a new paragraph if no paragraph id is provided
+  // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  @Mutation(() => FlashcardModelGQL)
+  // TODO paragraph author
   public async updateFlashcardParagraph(
     @Args() {
       classroomId,
@@ -475,67 +445,46 @@ export default class FlashcardResolver {
       if (!paragraph.text) {
         throw new ApolloError("Paragraph text is required")
       }
-      subtitle.paragraph = subtitle.paragraph.push(createdParagraph);
-      await classroomModel.updateOne(classroom);
-
-      return flashcard;
-    }
-    catch {
-      throw new ApolloError("Could not create a new paragraph")
-    }
-  }
-
-
-
-
-
-  //  update a paragraph by providing 
-  // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-  /*   @Mutation((returns) => FlashcardModelGQL)
-    public async updateParagraph(
-      @Args() {
-        classroomId,
-        subjectId,
-        flashcardId,
-        subtitleId,
-        paragraph
-      }
-        : UpdateParagraph
-    ) {
-  
-  
-      const classroom = await this.getClassroomById(classroomId);
-      const subject = this.getSubjectById(classroom, subjectId);
-      const flashcard = this.getFlashcardById(subject, flashcardId);
-      const subtitle = this.getSubtitleById(flashcard, subtitleId);
-      const paragraphToUpdate = this.getParagraphById(subtitle, paragraph.paragraphId);
-
-      //cannot update a paragraph if paragarph's authos is not paragraph's editor
-      if (paragraph.author !== paragraphToUpdate.author) {
-        throw new ApolloError("Could not update because not the same author")
-      }
-      catch {
-        throw new ApolloError("Could not create a new paragraph")
+      else {
+        const createdParagraph = {
+          text: paragraph.text,
+          isValidate: false, // => paragraph is not validated by default
+          isPublic: (paragraph.isPublic !== undefined) ? paragraph.isPublic : true, // => paragraph is public by default
+          author: "REPLACE BY USER ID",
+          // TODO author = userid stored in context
+          // author: paragraph.author, 
+          date: new Date()
+        }
+        subtitle.paragraph = subtitle.paragraph.push(createdParagraph);
+        try {
+          await ClassroomModel.updateOne(classroom);
+          return flashcard;
+        }
+        catch {
+          throw new ApolloError("Could not create a new paragraph")
+        }
       }
     }
 
-    //if a paragraph id is provided then update the existing paragraph
+    // if a paragraph id is provided then update the existing paragraph
     else if (paragraph.paragraphId) {
       const paragraphToUpdate: any = this.getParagraphById(subtitle, paragraph.paragraphId);
 
-      //if there is only isValidate in paragraph object then it switch ti validate true
-      //TODO check user here, if the same use who created the paragraph then do not validate
-      if (Object.keys(paragraph).length === 2 && paragraph.isValidate !== undefined && paragraph.paragraphId) {
+      // if there is only isValidate in paragraph object then it switch ti validate true
+      // TODO check user here, if the same use who created the paragraph then do not validate
+      if (Object.keys(paragraph).length === 2 && paragraph.isValidate !== undefined) {
         paragraphToUpdate.isValidate = paragraph.isValidate;
       }
       else {
-        paragraph.text && (paragraphToUpdate.text = paragraph.text);
-        paragraphToUpdate.isValidate = false; //=> upon updated paragraph become !validated
-        paragraphToUpdate.date = getCurrentLocalDateParis();
-        paragraph.isPublic !== undefined ? (paragraphToUpdate.isPublic = paragraph.isPublic) : (paragraphToUpdate.isPublic = true)
+        if (paragraph.text) {
+          paragraphToUpdate.text = paragraph.text
+        }
+        paragraphToUpdate.isValidate = false; // => upon updated paragraph become !validated
+        paragraphToUpdate.date = new Date();
+        paragraphToUpdate.isPublic = paragraph.isPublic || true
       }
       try {
-        await classroomModel.updateOne(classroom);
+        await ClassroomModel.updateOne(classroom);
         return flashcard;
       }
 
@@ -543,38 +492,6 @@ export default class FlashcardResolver {
         throw new ApolloError("Could not update paragraph")
       }
     }
+    return flashcard;
   }
-  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-
-
-  // C'étais dans la mutation de createFlashcard
-  //= ===========================================================
-      // je laisse ça ici pour continuer de chercher sur du temps libre
-
-    // const class2 = await classroomModel
-    //   .aggregate()
-    //   .match({
-    //     _id: mongoose.Types.ObjectId(classroomId),
-    //     'subject.flashcard': {
-    //       $elemMatch: { _id: mongoose.Types.ObjectId(flashcardId) },
-    //     },
-    //   })
-    //   .unwind('$subject')
-    //   .unwind('$subject.flashcard')
-    //   .match({
-    //     'subject.flashcard._id': mongoose.Types.ObjectId(flashcardId),
-    //   })
-    //   .group({
-    //     _id: '$subject.flashcard._id',
-    //     title: { $first: '$subject.flashcard.title' },
-    //     tag: { $first: '$subject.flashcard.tag' },
-    //     subtitle: { $first: '$subject.flashcard.subtitle' },
-    //     ressource: { $first: '$subject.flashcard.ressource' },
-    //     question: { $first: '$subject.flashcard.question' },
-    //   })
-    //   .exec();
-    // console.log(class2);
-    // return class2;
-
-  //= ===========================================================
+}
