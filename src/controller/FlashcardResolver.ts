@@ -16,10 +16,7 @@ import ClassroomModel from '../model/classroom';
 import { ITokenContext } from '../utils/interface';
 import classroomModel from '../model/classroom';
 import FlashcardModelGQL, { Paragraph, Ressource, Subtitle } from '../model/graphql/flashcardModelGQL';
-import getCurrentLocalDateParis from '../utils/getCurrentLocalDateParis';
 import { iClassroom, iFlashcard, iParagraph, iSubject, iSubtitle } from '../utils/types/classroomTypes';
-
-
 
 @InputType()
 class RessourceInput extends Ressource {
@@ -67,7 +64,7 @@ class CreateFlahsCard implements Partial<FlashcardModelGQL> {
 
 
 @ArgsType()
-class CreateFlahscard implements Partial<FlashcardModelGQL>  {
+class CreateFlashcard implements Partial<FlashcardModelGQL>  {
   @Field()
   classroomId!: string;
 
@@ -130,10 +127,6 @@ class ParagraphInput implements Partial<Paragraph> {
   // is validate can be nullable because it might not be provided in case we want to simply update or create a paragraph, but it should be provided to validate a paragarph
   @Field({ nullable: true })
   isValidate!: boolean;
-  // TODO delete if tested and not needed
-  /* 
-    @Field()
-    author!: string; */
 }
 
 
@@ -185,8 +178,7 @@ export default class FlashcardResolver {
   // =================================================
   private getSubjectById(classroom: iClassroom, subjectId: string): iSubject | undefined {
     const subject = classroom.subject.find(
-      // eslint-disable-next-line eqeqeq
-      (currentSubject: iSubject) => currentSubject.subjectId == subjectId
+      (currentSubject: iSubject) => currentSubject.subjectId.toString() === subjectId
     )
     return subject
   }
@@ -195,8 +187,7 @@ export default class FlashcardResolver {
   // =================================================
   private getFlashcardById(subject: iSubject, flashcardId: string): iFlashcard | undefined {
     const flashcard = subject.flashcard.find(
-      // eslint-disable-next-line eqeqeq
-      (currentFlashcard: iFlashcard) => currentFlashcard._id == flashcardId
+      (currentFlashcard: iFlashcard) => currentFlashcard._id?.toString() === flashcardId
     )
     return flashcard;
   }
@@ -205,8 +196,7 @@ export default class FlashcardResolver {
   // =================================================
   private getSubtitleById(flashcard: iFlashcard, subtitleId: string): iSubtitle | undefined {
     const subtitle = flashcard.subtitle.find(
-      // eslint-disable-next-line eqeqeq
-      (currentSubtitle: iSubtitle) => currentSubtitle._id == subtitleId
+      (currentSubtitle: iSubtitle) => currentSubtitle._id?.toString() === subtitleId
     )
     return subtitle;
   }
@@ -215,8 +205,7 @@ export default class FlashcardResolver {
   // =================================================
   private getParagraphById(subtitle: iSubtitle, paragraphId: string): iParagraph | undefined {
     const paragrpah = subtitle.paragraph.find(
-      // eslint-disable-next-line eqeqeq
-      (currentParagraph: iParagraph) => currentParagraph._id == paragraphId
+      (currentParagraph: iParagraph) => currentParagraph._id?.toString() === paragraphId
     )
     return paragrpah
   }
@@ -304,8 +293,9 @@ export default class FlashcardResolver {
       title,
       ressource,
       tag,
-      subtitle,
-    }: CreateFlahsCard,
+      subtitle
+    }
+      : CreateFlashcard
   ): Promise<iFlashcard | null> {
 
     
@@ -417,7 +407,7 @@ export default class FlashcardResolver {
     }
 
     if (!flashcard) {
-      throw new ApolloError("flashcard required");
+      throw new ApolloError("No flashcard match");
     }
 
     if (title) {
