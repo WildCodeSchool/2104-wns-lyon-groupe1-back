@@ -38,7 +38,6 @@ class SubtitleInput extends Subtitle {
   position!: number;
 }
 
-
 @ArgsType()
 class CreateFlashcard implements Partial<FlashcardModelGQL>  {
   @Field()
@@ -59,8 +58,6 @@ class CreateFlashcard implements Partial<FlashcardModelGQL>  {
   @Field(() => [RessourceInput])
   ressource!: RessourceInput[];
 }
-
-
 
 @ArgsType()
 class UpdateFlashcard implements Partial<FlashcardModelGQL> {
@@ -125,15 +122,9 @@ class CreateParagraph extends FlashcardModelGQL {
   paragraph!: ParagraphInput;
 }
 
-
-
-
-
-
 // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
 
 @Resolver(FlashcardModelGQL)
 export default class FlashcardResolver {
@@ -190,7 +181,7 @@ export default class FlashcardResolver {
   public async getAllFlashcards(
     @Arg('classroomId') classroomId: string,
     @Ctx() ctx: ITokenContext,
-  ) {
+  ) : Promise<iFlashcard[] | null> {
     const { user } = ctx;
     console.log(user.id);
     const classroom = await ClassroomModel.findById(classroomId);
@@ -227,6 +218,8 @@ export default class FlashcardResolver {
     @Ctx() ctx: ITokenContext,
   ) : Promise<iFlashcard | null> {
     const { user } = ctx;
+    console.log({user});
+
     console.log(user.id);
 
     const classroom = await ClassroomModel.findOne(
