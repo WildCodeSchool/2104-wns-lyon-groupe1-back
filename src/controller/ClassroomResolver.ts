@@ -134,19 +134,20 @@ export default class ClassroomResolver {
       { new: true },
     );
 
-    await userModel.findOneAndUpdate(
-      { _id: student._id },
-      {
-        $push: {
-          classroom: {
-            classroomId: id,
-            name: classRoom && classRoom.name,
-            year: classRoom && classRoom.year,
+    if(classRoom){
+      await userModel.findOneAndUpdate(
+        { _id: student._id },
+        {
+          $push: {
+            classroom: {
+              classroomId: id,
+              name: classRoom.name,
+              year: classRoom.year,
+            },
           },
         },
-      },
-    );
-
+      );
+    }
     return classRoom;
   }
 }

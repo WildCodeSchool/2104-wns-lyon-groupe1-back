@@ -2,12 +2,7 @@ import { Resolver, Arg, Mutation, Query, InputType, Field, ArgsType, Args, ID } 
 import { ApolloError } from 'apollo-server-express';
 import classroomModel from '../model/classroom';
 import FlashcardModelGQL, { Paragraph, Ressource, Subtitle } from '../model/graphql/flashcardModelGQL';
-import getCurrentLocalDateParis from '../utils/getCurrentLocalDateParis';
 import { iClassroom, iFlashcard, iParagraph, iSubject, iSubtitle } from '../utils/types/classroomTypes';
-
-
-
-
 
 @InputType()
 class RessourceInput extends Ressource {
@@ -33,7 +28,7 @@ class SubtitleInput extends Subtitle {
 
 
 @ArgsType()
-class CreateFlahscard implements Partial<FlashcardModelGQL>  {
+class CreateFlashcard implements Partial<FlashcardModelGQL>  {
   @Field()
   classroomId!: string;
 
@@ -96,10 +91,6 @@ class ParagraphInput implements Partial<Paragraph> {
   // is validate can be nullable because it might not be provided in case we want to simply update or create a paragraph, but it should be provided to validate a paragarph
   @Field({ nullable: true })
   isValidate!: boolean;
-  // TODO delete if tested and not needed
-  /* 
-    @Field()
-    author!: string; */
 }
 
 
@@ -151,8 +142,7 @@ export default class FlashcardResolver {
   // =================================================
   private getSubjectById(classroom: iClassroom, subjectId: string): iSubject | undefined {
     const subject = classroom.subject.find(
-      // eslint-disable-next-line eqeqeq
-      (currentSubject: iSubject) => currentSubject.subjectId == subjectId
+      (currentSubject: iSubject) => currentSubject.subjectId.toString() === subjectId
     )
     return subject
   }
@@ -161,8 +151,7 @@ export default class FlashcardResolver {
   // =================================================
   private getFlashcardById(subject: iSubject, flashcardId: string): iFlashcard | undefined {
     const flashcard = subject.flashcard.find(
-      // eslint-disable-next-line eqeqeq
-      (currentFlashcard: iFlashcard) => currentFlashcard._id == flashcardId
+      (currentFlashcard: iFlashcard) => currentFlashcard._id?.toString() === flashcardId
     )
     return flashcard;
   }
@@ -171,8 +160,7 @@ export default class FlashcardResolver {
   // =================================================
   private getSubtitleById(flashcard: iFlashcard, subtitleId: string): iSubtitle | undefined {
     const subtitle = flashcard.subtitle.find(
-      // eslint-disable-next-line eqeqeq
-      (currentSubtitle: iSubtitle) => currentSubtitle._id == subtitleId
+      (currentSubtitle: iSubtitle) => currentSubtitle._id?.toString() === subtitleId
     )
     return subtitle;
   }
@@ -181,8 +169,7 @@ export default class FlashcardResolver {
   // =================================================
   private getParagraphById(subtitle: iSubtitle, paragraphId: string): iParagraph | undefined {
     const paragrpah = subtitle.paragraph.find(
-      // eslint-disable-next-line eqeqeq
-      (currentParagraph: iParagraph) => currentParagraph._id == paragraphId
+      (currentParagraph: iParagraph) => currentParagraph._id?.toString() === paragraphId
     )
     return paragrpah
   }
@@ -243,7 +230,7 @@ export default class FlashcardResolver {
       tag,
       subtitle
     }
-      : CreateFlahscard
+      : CreateFlashcard
   ): Promise<iFlashcard | null> {
     if (title === "" || tag.length === 0 || ressource.length === 0 || subtitle.length === 0) {
       throw new ApolloError(
@@ -346,7 +333,7 @@ export default class FlashcardResolver {
     }
 
     if (!flashcard) {
-      throw new ApolloError("flashcard required");
+      throw new ApolloError("No flashcard match");
     }
 
     if (title) {
@@ -423,7 +410,7 @@ export default class FlashcardResolver {
           author: "REPLACE BY USER ID",
           // TODO author = userid stored in context
           // author: paragraph.author, 
-          date: getCurrentLocalDateParis()
+          date: new Date()
         }
         subtitle.paragraph = subtitle.paragraph.push(createdParagraph);
         try {
@@ -442,7 +429,7 @@ export default class FlashcardResolver {
 
       // if there is only isValidate in paragraph object then it switch ti validate true
       // TODO check user here, if the same use who created the paragraph then do not validate
-      if (Object.keys(paragraph).length === 2 && paragraph.isValidate !== undefined && paragraph.paragraphId) {
+      if (Object.keys(paragraph).length === 2 && paragraph.isValidate !== undefined) {
         paragraphToUpdate.isValidate = paragraph.isValidate;
       }
       else {
@@ -450,13 +437,8 @@ export default class FlashcardResolver {
           paragraphToUpdate.text = paragraph.text
         }
         paragraphToUpdate.isValidate = false; // => upon updated paragraph become !validated
-        paragraphToUpdate.date = getCurrentLocalDateParis();
-        if (paragraph.isPublic !== undefined) {
-          paragraphToUpdate.isPublic = paragraph.isPublic
-        }
-        else if (paragraph.isPublic === undefined) {
-          paragraphToUpdate.isPublic = true
-        }
+        paragraphToUpdate.date = new Date();
+        paragraphToUpdate.isPublic = paragraph.isPublic || true
       }
       try {
         await classroomModel.updateOne(classroom);

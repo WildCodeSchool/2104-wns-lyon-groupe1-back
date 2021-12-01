@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 export interface iParagraph{
     _id? : string,
     text : string,
