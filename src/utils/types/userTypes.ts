@@ -6,6 +6,7 @@ export interface iUserClassroom {
 
 
 export interface iUser  {
+    _id : string
     mail : string,
     firstname  : string,
     lastname  : string,

@@ -6,6 +6,7 @@ import UserModel from '../model/user';
 import config from '../config/env.dev';
 import { ITokenContext } from '../utils/interface';
 import UserModelGQL from '../model/graphql/userModelGQL';
+import { iUser } from '../utils/types/userTypes';
 
 @Resolver(UserModelGQL)
 export default class UserAuthResolver {
@@ -60,7 +61,7 @@ export default class UserAuthResolver {
     @Arg('password') password: string,
   ) {
     try {
-      const user = await UserModel.findOne({ mail });
+      const user : any = await UserModel.findOne({ mail });
       console.log(user);
       if (!user) throw new Error();
       if (!(await bcrypt.compare(password, user.password))) throw new Error();
@@ -87,7 +88,7 @@ export default class UserAuthResolver {
     const { user } = ctx;
 
     try {
-      const userInfo = await UserModel.findOne({ mail: user.mail });
+      const userInfo : any = await UserModel.findOne({ mail: user.mail });
 
       if (!userInfo) throw new Error();
 
