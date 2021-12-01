@@ -12,9 +12,9 @@ import {
 } from 'type-graphql';
 import { ApolloError } from 'apollo-server-express';
 import ClassroomModel from '../model/classroom';
-import { ITokenContext } from '../utils/interface';
 import FlashcardModelGQL, { Paragraph, Ressource, Subtitle } from '../model/graphql/flashcardModelGQL';
 import { iClassroom, iFlashcard, iParagraph, iSubject, iSubtitle } from '../utils/types/classroomTypes';
+import { ITokenContext } from '../utils/interface';
 
 @InputType()
 class RessourceInput extends Ressource {
@@ -58,6 +58,8 @@ class CreateFlashcard implements Partial<FlashcardModelGQL>  {
   @Field(() => [RessourceInput])
   ressource!: RessourceInput[];
 }
+
+
 
 @ArgsType()
 class UpdateFlashcard implements Partial<FlashcardModelGQL> {
@@ -125,6 +127,15 @@ class CreateParagraph extends FlashcardModelGQL {
 // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+
+
+
+
+// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 
 @Resolver(FlashcardModelGQL)
 export default class FlashcardResolver {
@@ -408,7 +419,6 @@ export default class FlashcardResolver {
       throw new ApolloError("ERROR cannot update flashcard paragraphs")
     }
   }
-
 
 
   // UPDATE flashcard paragraph by providing a paragraph id or CREATE a new paragraph if no paragraph id is provided
