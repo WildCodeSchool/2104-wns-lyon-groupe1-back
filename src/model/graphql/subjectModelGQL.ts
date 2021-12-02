@@ -2,7 +2,7 @@ import { Field, ObjectType, ID } from 'type-graphql';
 
 
 @ObjectType()
-export default class SubjectModelGQL {
+export class SubjectModelGQL {
     @Field(()=> ID)
     _id! : string;
 
@@ -11,4 +11,33 @@ export default class SubjectModelGQL {
 
     @Field()
     name! : string 
+}
+
+
+@ObjectType()
+class CustomFlashcardModelGQL{
+    @Field(() => ID)
+    id!: string;
+  
+    @Field()
+    title!: string;
+  
+    @Field(() => [String])
+    tag!: string[];
+}
+
+@ObjectType()
+export class SubjectFlashcardModelGQL {
+    // returned subjectId
+    @Field(()=> ID)
+    _id! : string;
+
+    @Field()
+    imageUrl! : string;
+
+    @Field()
+    name! : string 
+
+    @Field(() => [CustomFlashcardModelGQL])
+    flashcard! : CustomFlashcardModelGQL[];
 }
