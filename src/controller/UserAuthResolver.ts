@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { Resolver, Arg, Mutation, Query, Ctx } from 'type-graphql';
+import { Resolver, Arg, Mutation, Ctx } from 'type-graphql';
 import { ApolloError } from 'apollo-server-express';
 import UserModel from '../model/user';
 import config from '../config/env.dev';
@@ -10,25 +10,12 @@ import { iUser } from '../utils/types/userTypes';
 
 @Resolver(UserModelGQL)
 export default class UserAuthResolver {
-  // get user by id, @@@ don't delete this, because we should have at least one query in a resolver @@
-
-  // Cette query semble inutile et inutilisé, on récupére l'utilisateur avec checkLogin en vérifiant que le token est valide
-
-  // @Query((returns) => UserModelGQL)
-  // public async getUser(@Arg('_id') _id: string) {
-  //   const user = userModel.findOne({ _id });
-  //   return user;
-  // }
-
-  // TODO user change password
-  // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
   @Mutation(() => Boolean)
   public async changePassword(
     @Arg('newPassword') newPassword: string,
     @Arg('oldPassword') oldPassword: string,
     @Ctx() ctx: ITokenContext,
-  ) {
+  ): Promise<boolean> {
     const { user } = ctx;
     if (!user.id) throw new Error('401 - Unauthorized');
 
@@ -59,10 +46,9 @@ export default class UserAuthResolver {
   public async login(
     @Arg('mail') mail: string,
     @Arg('password') password: string,
-  ) {
+  ): Promise<Partial<iUser>> {
     try {
-      const user : any = await UserModel.findOne({ mail });
-      console.log(user);
+      const user = await UserModel.findOne({ mail });
       if (!user) throw new Error();
       if (!(await bcrypt.compare(password, user.password))) throw new Error();
 
@@ -74,21 +60,24 @@ export default class UserAuthResolver {
         config.token,
       );
 
-      user.token = userToken;
-      user.id = user._id;
-      delete user.password;
-      return user;
+      const userWthoutPassword: Partial<iUser> = {
+        ...user.toObject(),
+      };
+      userWthoutPassword.token = userToken;
+      userWthoutPassword.id = user._id;
+      delete userWthoutPassword.password;
+      return userWthoutPassword;
     } catch (e) {
       throw new ApolloError('Cannot Login. Please verify credentials');
     }
   }
 
   @Mutation(() => UserModelGQL)
-  public async checklogin(@Ctx() ctx: ITokenContext) {
+  public async checklogin(@Ctx() ctx: ITokenContext): Promise<Partial<iUser>> {
     const { user } = ctx;
 
     try {
-      const userInfo : any = await UserModel.findOne({ mail: user.mail });
+      const userInfo = await UserModel.findOne({ mail: user.mail });
 
       if (!userInfo) throw new Error();
 
@@ -104,10 +93,15 @@ export default class UserAuthResolver {
         config.token,
       );
 
+      const userWithoutPassword: Partial<iUser> = { 
+        ...userInfo.toObject() 
+      };
+      userWithoutPassword.token = userToken;
+      userWithoutPassword.id = userInfo._id;
       userInfo.token = userToken;
       userInfo.id = userInfo._id;
-      delete userInfo.password;
-      return userInfo;
+      delete userWithoutPassword.password;
+      return userWithoutPassword;
     } catch (e) {
       throw new ApolloError('Cannot Login. Please verify credentials');
     }

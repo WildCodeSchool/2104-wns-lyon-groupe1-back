@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { iUser } from "../utils/types/userTypes";
 
-const user = new mongoose.Schema({
+const user = new mongoose.Schema<iUser>({
     mail: {type : String, unique : true},
     firstname: String,
     lastname: String,

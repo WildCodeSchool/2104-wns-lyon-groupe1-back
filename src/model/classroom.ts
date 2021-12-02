@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { iClassroom } from "../utils/types/classroomTypes";
 
 
-const classrooms = new mongoose.Schema({
+const classrooms = new mongoose.Schema<iClassroom>({
     name: String,
     year: String,
     student: [
