@@ -15,13 +15,13 @@ export default class SubjectResolver {
 
     // Private method to get a classroom by providing its id
     // =================================================
-    private async getClassroomById(classroomId: string): Promise<iClassroom | null > {
+    private async getClassroomById(classroomId: string): Promise<iClassroom | null> {
         try {
             const classroom = await ClassroomModel.findOne({ _id: classroomId });
             return classroom;
         }
         catch {
-            throw new ApolloError("cannot find classroom")
+            throw new Error("cannot find classroom");
         }
     }
 
@@ -32,18 +32,18 @@ export default class SubjectResolver {
             return subjects;
         }
         catch {
-            throw new ApolloError("Cannot get subjects");
+            throw new Error("Cannot get subjects");
         }
     }
 
 
     // private method to get subject located in a classroom by providing classroom object and subjectId
     // =================================================
-    private getSubjectById(classroom: iClassroom, subjectId: string): iSubject | undefined {
+    private getSubjectById(classroom: iClassroom, subjectId: string): iSubject | null {
         const subject = classroom.subject.find(
             (currentSubject: iSubject) => currentSubject.subjectId.toString() === subjectId
         )
-        return subject
+        return subject || null;
     }
 
 
@@ -52,23 +52,28 @@ export default class SubjectResolver {
     @Query(() => [SubjectModelGQL])
     public async getAllSubjectsByClassroom(
         @Arg('classroomId') classroomId: string
-    ): Promise<iSubject | null> {
+    ): Promise<iSubject[] | null> {
 
-        const classroom = await this.getClassroomById(classroomId);
-        const subjectsId: string[] = [];
-        if(!classroom){
-            throw new ApolloError("Could not get classroom");
+        try{
+            const classroom = await this.getClassroomById(classroomId);
+            const subjectsId: string[] = [];
+            if (!classroom) {
+                throw new Error("cannot find classroom");
+            }
+    
+            for (let i = 0; i < classroom.subject.length; i += 1) {
+                subjectsId.push(classroom.subject[i].subjectId);
+            }
+    
+            if (subjectsId.length === 0) {
+                throw new Error("No subjects in classroom");
+            }
+                const subjects = await this.getSubjectsByIds(subjectsId);
+                return subjects;
         }
-
-        for (let i = 0; i < classroom.subject.length; i += 1) {
-            subjectsId.push(classroom.subject[i].subjectId);
+        catch(error : any){
+            throw new ApolloError(error.message);
         }
-
-        if (subjectsId.length === 0) {
-            throw new ApolloError("No subjects in classroom")
-        }
-        const subjects :any = await this.getSubjectsByIds(subjectsId);
-        return subjects;
     }
 
     // Get subjects flashcards 
@@ -81,8 +86,8 @@ export default class SubjectResolver {
 
         const classroom = await this.getClassroomById(classroomId);
         const subject = classroom && this.getSubjectById(classroom, subjectId);
-        if(!subject){
-            throw new ApolloError("Could not get subject")
+        if (!subject) {
+            throw new ApolloError("Could not get subject");
         }
 
         return subject;

@@ -1,10 +1,9 @@
 import { Field, ObjectType, ID } from 'type-graphql';
 
-
 @ObjectType()
 export class SubjectModelGQL {
     @Field(()=> ID)
-    _id! : string;
+    id! : string;
 
     @Field()
     imageUrl! : string;
@@ -12,7 +11,6 @@ export class SubjectModelGQL {
     @Field()
     name! : string 
 }
-
 
 @ObjectType()
 class CustomFlashcardModelGQL{
@@ -28,9 +26,10 @@ class CustomFlashcardModelGQL{
 
 @ObjectType()
 export class SubjectFlashcardModelGQL {
+    
     // returned subjectId
     @Field(()=> ID)
-    _id! : string;
+    id! : string;
 
     @Field()
     imageUrl! : string;

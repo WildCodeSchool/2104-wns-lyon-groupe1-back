@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { iSubject } from "../utils/types/classroomTypes";
 
-const subjects = new mongoose.Schema({
+const subjects = new mongoose.Schema<iSubject>({
     name : String,
     imageUrl : String,    
 });
