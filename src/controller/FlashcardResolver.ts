@@ -284,15 +284,47 @@ export default class FlashcardResolver {
       { 'f._id': flashcardId },
     ];
 
-    const newSubtitle: Array<{ [key: string]: string | number }> = [];
+    const newSubtitle: Array<{
+      [key: string]: string | number | iParagraph[];
+    }> = [];
 
+    const existingSubtitle = subtitle?.reduce((id: string[], sub) => {
+      if (sub.subtitleId) {
+        id.push(sub.subtitleId);
+      }
+      return id;
+    }, []);
+    const existingParagraph: { [key: string]: iParagraph[] } = {};
+    if (existingSubtitle?.length) {
+      try {
+        const classroom = await ClassroomModel.findOne(
+          {
+            _id: classroomId,
+            subject: {
+              $elemMatch: { flashcard: { $elemMatch: { _id: flashcardId } } },
+            },
+          },
+          ['subject.flashcard.$'],
+        );
+        const subtitles = classroom?.subject[0].flashcard
+          .filter((f) => f._id?.toString() === flashcardId)[0]
+          .subtitle.filter((s) =>
+            existingSubtitle.includes(s._id?.toString() || ''),
+          )
+          .forEach((s) => {
+            existingParagraph[s._id] = s.paragraph;
+          });
+      } catch (e) {
+        throw new ApolloError('Subtitle not found');
+      }
+    }
     subtitle?.forEach((sub, index) => {
       newSubtitle.push({
         title: sub.title,
         position: index,
+        paragraph: sub.subtitleId ? existingParagraph[sub.subtitleId] : [],
       });
     });
-
     if (newSubtitle.length) {
       updQuery.$set[`subject.$[s].flashcard.$[f].subtitle`] = newSubtitle;
     }

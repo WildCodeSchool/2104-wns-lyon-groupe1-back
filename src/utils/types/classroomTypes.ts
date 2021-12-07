@@ -1,67 +1,65 @@
-export interface iParagraph{
-    _id? : string,
-    text : string,
-    isValidate : boolean,
-    isPublic : boolean,
-    author : string,
-    date : Date
+export interface iParagraph {
+  _id?: string;
+  text: string;
+  isValidate: boolean;
+  isPublic: boolean;
+  author: string;
+  date: Date;
 }
 
 export interface iRessource {
-    name : string,
-    url : string
+  name: string;
+  url: string;
 }
 
 export interface iSubtitle {
-    _id? : string,
-    title : string,
-    position : number,
-    paragraph : iParagraph[]
+  _id: string;
+  title: string;
+  position: number;
+  paragraph: iParagraph[];
 }
 
-export interface iAnswer{
-    text : string,
-    author : string,
-    date : Date
+export interface iAnswer {
+  text: string;
+  author: string;
+  date: Date;
 }
 
-export interface iQuestion{
-    text : string,
-    answer : iAnswer[]
-    date : Date,
-    author : string,
-    isPublic  : boolean
+export interface iQuestion {
+  text: string;
+  answer: iAnswer[];
+  date: Date;
+  author: string;
+  isPublic: boolean;
 }
-
 
 export interface iFlashcard {
-    _id? : string
-    subjectId?: string
-    title : string,
-    tag : string[]
-    subtitle  : iSubtitle[]
-    ressource : iRessource[]
-    question : iQuestion[]
+  _id?: string;
+  subjectId?: string;
+  title: string;
+  tag: string[];
+  subtitle: iSubtitle[];
+  ressource: iRessource[];
+  question: iQuestion[];
 }
 
 export interface iSubject {
-    _id? : string,
-    subjectId : string,
-    flashcard : iFlashcard[]
+  _id: string;
+  subjectId: string;
+  flashcard: iFlashcard[];
 }
 
 export interface iStudent {
-    firstname: string,
-    lastname: string,
-    mail: string,
-    userId: string,
+  firstname: string;
+  lastname: string;
+  mail: string;
+  userId: string;
 }
 
-
 export interface iClassroom {
-    _id? : string,
-    name : string,
-    year : string,
-    student : iStudent[],
-    subject : iSubject[],
+  _id?: string;
+  name: string;
+  year: string;
+  student: iStudent[];
+  subject: iSubject[];
 }
