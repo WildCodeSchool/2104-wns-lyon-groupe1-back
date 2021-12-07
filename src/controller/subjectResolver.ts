@@ -77,7 +77,7 @@ export default class SubjectResolver {
     
             for (let i = 0; i < classroom.subject.length; i += 1) {
                 subjectsCollectionIds.push(classroom.subject[i].subjectId);
-                subejctsId.push(classroom.subject[i]._id!);
+                subejctsId.push(classroom.subject[i]._id);
             }
     
             if (subjectsCollectionIds.length === 0) {
