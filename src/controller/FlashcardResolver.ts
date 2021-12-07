@@ -218,11 +218,19 @@ export default class FlashcardResolver {
     if (isExistFlashcard) {
       throw new ApolloError('Title Flashcard already exists');
     }
+    const newSubtitle: Array<{ [key: string]: string | number}> = [];
+
+    subtitle?.forEach((sub, index) => {
+      newSubtitle.push({
+        title: sub.title,
+        position: index,
+      });
+    });
 
     const newFlashCard = {
       title,
       tag,
-      subtitle,
+      subtitle: newSubtitle,
       ressource,
     };
 
@@ -275,31 +283,19 @@ export default class FlashcardResolver {
       { 'f._id': flashcardId },
     ];
 
-    const existingSubtitleQuery: { [key: string]: string | number } = {};
+   const newSubtitle: Array<{ [key: string]: string | number}> = [];
 
     subtitle?.forEach((sub, index) => {
-      if (sub.subtitleId) {
-        existingSubtitleQuery[
-          `subject.$[s].flashcard.$[f].subtitle.$[subt${index}].title`
-        ] = sub.title;
-        existingSubtitleQuery[
-          `subject.$[s].flashcard.$[f].subtitle.$[subt${index}].position`
-        ] = index;
-        filters.push({ [`subt${index}._id`]: sub.subtitleId });
-      } else {
-        updQuery.$push[`subject.$[s].flashcard.$[f].subtitle`] = {
-          title: sub.title,
-          position: index,
-        };
-      }
+      newSubtitle.push({
+        title: sub.title,
+        position: index,
+      });
     });
+
+    if (newSubtitle.length) {
+      updQuery.$set[`subject.$[s].flashcard.$[f].subtitle`] =  newSubtitle;
+    }
     try {
-      // On peut pas ajouter des nouveau Objets à un tableau et dans la même requête modifiér des objets existants du même tableau
-      await ClassroomModel.updateOne(
-        { _id: classroomId },
-        { $set: { ...existingSubtitleQuery } },
-        { arrayFilters: [...filters] },
-      );
       const classroom = await ClassroomModel.findOneAndUpdate(
         {
           _id: classroomId,
