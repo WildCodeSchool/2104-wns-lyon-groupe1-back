@@ -36,6 +36,7 @@ export interface iQuestion{
 
 export interface iFlashcard {
     _id? : string
+    subjectId?: string
     title : string,
     tag : string[]
     subtitle  : iSubtitle[]

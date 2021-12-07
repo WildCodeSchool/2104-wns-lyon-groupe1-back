@@ -88,6 +88,9 @@ export default class FlashcardModelGQL {
   @Field(() => ID)
   id!: string;
 
+  @Field(() => ID)
+  subjectId!: string;
+
   @Field()
   title!: string;
 

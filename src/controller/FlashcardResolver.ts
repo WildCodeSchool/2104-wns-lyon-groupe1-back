@@ -171,7 +171,7 @@ export default class FlashcardResolver {
           $elemMatch: { flashcard: { $elemMatch: { _id: flashcardId } } },
         },
       },
-      ['subject.flashcard.$'],
+      ['subject._id', 'subject.flashcard.$'],
     );
 
     if (!classroom) {
@@ -189,6 +189,7 @@ export default class FlashcardResolver {
       );
       return subtitle;
     });
+    flashcard.subjectId = classroom.subject[0]._id;
     return flashcard;
   }
 
@@ -218,7 +219,7 @@ export default class FlashcardResolver {
     if (isExistFlashcard) {
       throw new ApolloError('Title Flashcard already exists');
     }
-    const newSubtitle: Array<{ [key: string]: string | number}> = [];
+    const newSubtitle: Array<{ [key: string]: string | number }> = [];
 
     subtitle?.forEach((sub, index) => {
       newSubtitle.push({
@@ -283,7 +284,7 @@ export default class FlashcardResolver {
       { 'f._id': flashcardId },
     ];
 
-   const newSubtitle: Array<{ [key: string]: string | number}> = [];
+    const newSubtitle: Array<{ [key: string]: string | number }> = [];
 
     subtitle?.forEach((sub, index) => {
       newSubtitle.push({
@@ -293,7 +294,7 @@ export default class FlashcardResolver {
     });
 
     if (newSubtitle.length) {
-      updQuery.$set[`subject.$[s].flashcard.$[f].subtitle`] =  newSubtitle;
+      updQuery.$set[`subject.$[s].flashcard.$[f].subtitle`] = newSubtitle;
     }
     try {
       const classroom = await ClassroomModel.findOneAndUpdate(
