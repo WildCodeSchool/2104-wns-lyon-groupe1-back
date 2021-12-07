@@ -306,7 +306,7 @@ export default class FlashcardResolver {
           },
           ['subject.flashcard.$'],
         );
-        const subtitles = classroom?.subject[0].flashcard
+        classroom?.subject[0].flashcard
           .filter((f) => f._id?.toString() === flashcardId)[0]
           .subtitle.filter((s) =>
             existingSubtitle.includes(s._id?.toString() || ''),
