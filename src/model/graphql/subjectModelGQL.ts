@@ -2,7 +2,7 @@ import { Field, ObjectType, ID } from 'type-graphql';
 
 @ObjectType()
 export class SubjectModelGQL {
-    @Field(()=> ID)
+    @Field(() => ID)
     id! : string;
 
     @Field()

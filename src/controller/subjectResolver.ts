@@ -46,6 +46,19 @@ export default class SubjectResolver {
         return subject || null;
     }
 
+    // get all subjects, (from subjects collection)
+    // =================================================
+    @Query(() => [SubjectModelGQL])
+    public async getAllSubejcts(): Promise<iSubject[] | null>{
+        try {
+            const subjects = await SubjectModel.find({});
+            return subjects;
+        }
+        catch{
+            // Useless error ... unless there is an error with mongoDb for example
+            throw new ApolloError("Could not get subjects");
+        }
+    }
 
     // Get classroom subjects by providing a classroomId
     // =================================================
@@ -56,19 +69,27 @@ export default class SubjectResolver {
 
         try{
             const classroom = await this.getClassroomById(classroomId);
-            const subjectsId: string[] = [];
+            const subjectsCollectionIds: string[] = []; // subujects ids in subjects collection
+            const subejctsId: string[] =[];
             if (!classroom) {
                 throw new Error("cannot find classroom");
             }
     
             for (let i = 0; i < classroom.subject.length; i += 1) {
-                subjectsId.push(classroom.subject[i].subjectId);
+                subjectsCollectionIds.push(classroom.subject[i].subjectId);
+                subejctsId.push(classroom.subject[i]._id!);
             }
     
-            if (subjectsId.length === 0) {
+            if (subjectsCollectionIds.length === 0) {
                 throw new Error("No subjects in classroom");
             }
-                const subjects = await this.getSubjectsByIds(subjectsId);
+                const subjects = await this.getSubjectsByIds(subjectsCollectionIds);
+                if(subjects){
+                    for(let i= 0 ;i<subjects.length; i+=1){
+                        subjects[i]._id =subejctsId[i];
+                    }
+                }
+                
                 return subjects;
         }
         catch(error : any){
