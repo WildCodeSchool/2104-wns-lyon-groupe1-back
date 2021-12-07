@@ -49,7 +49,7 @@ export default class SubjectResolver {
     // get all subjects, (from subjects collection)
     // =================================================
     @Query(() => [SubjectModelGQL])
-    public async getAllSubejcts(): Promise<iSubject[] | null>{
+    public async getAllSubjects(): Promise<iSubject[] | null>{
         try {
             const subjects = await SubjectModel.find({});
             return subjects;
