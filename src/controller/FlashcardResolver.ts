@@ -103,7 +103,7 @@ class ParagraphInput {
 }
 
 @ArgsType()
-class CreateParagraph {
+class UpdateFlashcardStudent {
   @Field(() => ID)
   classroomId!: string;
 
@@ -113,11 +113,14 @@ class CreateParagraph {
   @Field(() => ID)
   flashcardId!: string;
 
-  @Field(() => ID)
-  subtitleId!: string;
+  @Field(() => ID, { nullable: true })
+  subtitleId?: string;
 
-  @Field(() => ParagraphInput)
-  paragraph!: ParagraphInput;
+  @Field(() => ParagraphInput, { nullable: true })
+  paragraph?: ParagraphInput;
+
+  @Field({ nullable: true })
+  ressource?: RessourceInput;
 }
 
 @Resolver(FlashcardModelGQL)
@@ -328,7 +331,7 @@ export default class FlashcardResolver {
   }
 
   @Mutation(() => FlashcardModelGQL)
-  public async updateFlashcardParagraph(
+  public async updateFlashcardStudent(
     @Args()
     {
       classroomId,
@@ -336,54 +339,68 @@ export default class FlashcardResolver {
       flashcardId,
       subtitleId,
       paragraph,
-    }: CreateParagraph,
+      ressource,
+    }: UpdateFlashcardStudent,
     @Ctx() ctx: ITokenContext,
   ): Promise<iFlashcard | null> {
     const { user } = ctx;
 
+    if (paragraph && !subtitleId) {
+      throw new ApolloError('SubtitleId is required for paragraph action');
+    }
+
     const filters: Array<{ [key: string]: string }> = [
       { 'sub._id': subjectId },
       { 'flash._id': flashcardId },
-      { 'subt._id': subtitleId },
+      { 'subt._id': subtitleId || '' },
     ];
-    let updQuery = {};
+    const updQuery: {
+      [key: string]: { [key: string]: string | string[] | unknown };
+    } = { $set: {}, $push: {} };
 
-    if (paragraph.paragraphId) {
-      updQuery = {
-        $set: {
-          'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph.$[par].isPublic':
-            paragraph.isPublic ?? true,
-          ...(paragraph.text
-            ? {
-                'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph.$[par].text':
-                  paragraph.text,
-                'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph.$[par].author':
-                  user.id,
-                'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph.$[par].isValidate':
-                  false,
-              }
-            : {}),
-          ...('isValidate' in paragraph
-            ? {
-                'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph.$[par].isValidate':
-                  paragraph.isValidate,
-              }
-            : {}),
-        },
-      };
+    if (paragraph?.paragraphId) {
+      updQuery.$set[
+        'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph.$[par].isPublic'
+      ] = paragraph.isPublic ?? true;
+
+      if ('isValidate' in paragraph) {
+        updQuery.$set[
+          'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph.$[par].isValidate'
+        ] = paragraph.isValidate;
+      }
+
+      if ('text' in paragraph) {
+        updQuery.$set[
+          'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph.$[par].text'
+        ] = paragraph.text;
+        updQuery.$set[
+          'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph.$[par].author'
+        ] = user.id;
+        updQuery.$set[
+          'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph.$[par].isValidate'
+        ] = false;
+      }
+
       filters.push({ 'par._id': paragraph.paragraphId });
     } else {
-      updQuery = {
-        $push: {
-          'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph': {
-            text: paragraph.text,
-            isPublic: paragraph.isPublic || true,
-            author: user.id,
-            isValidate: false,
-            date: Date.now(),
-          },
-        },
-      };
+      if (paragraph) {
+        updQuery.$push[
+          'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph'
+        ] = {
+          text: paragraph.text,
+          isPublic: paragraph.isPublic || true,
+          author: user.id,
+          isValidate: false,
+          date: Date.now(),
+        };
+      }
+
+      if (ressource) {
+        updQuery.$push['subject.$[sub].flashcard.$[flash].ressource'] = {
+          name: ressource.name,
+          url: ressource.url,
+        };
+      }
     }
 
     try {
