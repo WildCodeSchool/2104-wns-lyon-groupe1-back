@@ -237,8 +237,8 @@ export default class FlashcardResolver {
         ressource,
       };
 
-      let filterOptions: any; // will be dynamically changed, depends on if subject does exist or not
-      let pushOptions: any; // will be dynamically changed, depends on if subject does exist or not
+      let filterOptions; // will be dynamically changed, depends on if subject does exist or not
+      let pushOptions; // will be dynamically changed, depends on if subject does exist or not
 
       // Check if subject does exist in classroom
       const isExistSubject = await ClassroomModel.findOne({ _id: classroomId, subject: { $elemMatch: { subjectId } } });

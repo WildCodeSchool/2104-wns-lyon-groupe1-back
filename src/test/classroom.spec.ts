@@ -7,7 +7,12 @@ import { ApolloServer } from 'apollo-server-express';
 import { MongoMemoryServer } from 'mongodb-memory-server-core'; //spinning mongo in memory for fast tests
 import classroomModel from '../model/classroom';
 import userModel from '../model/user';
-import { mockClassroom, mockStudent1, mockStudent2 } from './mockClassroom';
+import {
+  mockClassroom,
+  mockStudent1,
+  mockStudent2,
+  mockTeacher,
+} from './mockClassroom';
 
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 //queyr to get all classrooms;
@@ -40,6 +45,14 @@ const ADD_CLASSROOM = gql`
     }
   }
 `;
+
+const GET_TOKEN_LOGIN = gql`
+  mutation {
+    login(mail:"${mockTeacher.mail}", password:"${mockTeacher.password}") {
+      token
+    }
+  }
+`;
 //mutation to add a classroom by providing classroom _id and students email we want to add
 const ADD_STUDENT_TO_CLASSROOM = gql`mutation{addStudentToClassroom(id: "${mockClassroom._id}", studentMail : "${mockStudent1.mail}"){id, student{mail}}
 }`;
@@ -49,6 +62,7 @@ const ADD_STUDENT_TO_CLASSROOM = gql`mutation{addStudentToClassroom(id: "${mockC
 describe('classroom integration testing', () => {
   let apollo: ApolloServer;
   let mongo: MongoMemoryServer | null = null;
+  let token: string;
 
   beforeAll(async () => {
     mongo = await MongoMemoryServer.create();
@@ -57,6 +71,17 @@ describe('classroom integration testing', () => {
 
   beforeAll(async () => {
     apollo = await startServer(config);
+
+    const newUserTeacher = new userModel({
+      mail: mockTeacher.mail,
+      password: mockTeacher.passwordHashed,
+      isTeacher: false,
+    });
+    await newUserTeacher.save();
+    const response = await apollo.executeOperation({
+      query: GET_TOKEN_LOGIN,
+    });
+    token = response.data?.login.token || '';
   });
 
   beforeEach(async () => {
@@ -148,9 +173,12 @@ describe('classroom integration testing', () => {
     });
     await insertedStudent2.save();
 
-    const response = await apollo.executeOperation({
-      query: ADD_CLASSROOM,
-    });
+    const response = await apollo.executeOperation(
+      {
+        query: ADD_CLASSROOM,
+      },
+      { req: { headers: { authorization: token } } },
+    );
 
     expect(response.data?.addClassroom.student[0].mail).toEqual(
       mockStudent1.mail,
