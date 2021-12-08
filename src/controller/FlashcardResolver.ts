@@ -8,17 +8,21 @@ import {
   ArgsType,
   Args,
   Ctx,
+  ID,
 } from 'type-graphql';
 import { ApolloError } from 'apollo-server-express';
 import ClassroomModel from '../model/classroom';
-import FlashcardModelGQL, {
-  Ressource,
-  Subtitle,
-} from '../model/graphql/flashcardModelGQL';
+import FlashcardModelGQL from '../model/graphql/flashcardModelGQL';
+import {
+  iFlashcard,
+  iParagraph,
+  iSubject,
+  iSubtitle,
+} from '../utils/types/classroomTypes';
 import { ITokenContext } from '../utils/interface';
 
 @InputType()
-class CreateRessource extends Ressource {
+class RessourceInput {
   @Field()
   name!: string;
 
@@ -27,7 +31,10 @@ class CreateRessource extends Ressource {
 }
 
 @InputType()
-class CreateSubtitle extends Subtitle {
+class SubtitleInput {
+  @Field(() => ID, { nullable: true })
+  subtitleId?: string;
+
   @Field()
   title!: string;
 
@@ -36,24 +43,84 @@ class CreateSubtitle extends Subtitle {
 }
 
 @ArgsType()
-class CreateFlahsCard implements Partial<FlashcardModelGQL> {
-  @Field()
+class CreateFlashcard {
+  @Field(() => ID)
   classroomId!: string;
 
-  @Field()
+  @Field(() => ID)
   subjectId!: string;
 
   @Field()
   title!: string;
 
-  @Field(() => [String])
-  tag!: string[];
+  @Field(() => [String], { nullable: true })
+  tag?: string[];
 
-  @Field(() => [CreateSubtitle])
-  subtitle!: CreateSubtitle[];
+  @Field(() => [SubtitleInput], { nullable: true })
+  subtitle?: SubtitleInput[];
 
-  @Field(() => [CreateRessource])
-  ressource!: CreateRessource[];
+  @Field(() => [RessourceInput], { nullable: true })
+  ressource?: RessourceInput[];
+}
+
+@ArgsType()
+class UpdateFlashcard {
+  @Field(() => ID)
+  classroomId!: string;
+
+  @Field(() => ID)
+  subjectId!: string;
+
+  @Field(() => ID)
+  flashcardId!: string;
+
+  @Field(() => String, { nullable: true })
+  title?: string;
+
+  @Field(() => [String], { nullable: true })
+  tag?: string[];
+
+  @Field(() => [SubtitleInput], { nullable: true })
+  subtitle?: SubtitleInput[];
+
+  @Field(() => [RessourceInput], { nullable: true })
+  ressource?: RessourceInput[];
+}
+
+@InputType()
+class ParagraphInput {
+  @Field(() => ID, { nullable: true })
+  paragraphId?: string;
+
+  @Field({ nullable: true })
+  text?: string;
+
+  @Field({ nullable: true })
+  isPublic?: boolean;
+
+  @Field({ nullable: true })
+  isValidate?: boolean;
+}
+
+@ArgsType()
+class UpdateFlashcardStudent {
+  @Field(() => ID)
+  classroomId!: string;
+
+  @Field(() => ID)
+  subjectId!: string;
+
+  @Field(() => ID)
+  flashcardId!: string;
+
+  @Field(() => ID, { nullable: true })
+  subtitleId?: string;
+
+  @Field(() => ParagraphInput, { nullable: true })
+  paragraph?: ParagraphInput;
+
+  @Field({ nullable: true })
+  ressource?: RessourceInput;
 }
 
 @Resolver(FlashcardModelGQL)
@@ -62,29 +129,27 @@ export default class FlashcardResolver {
   public async getAllFlashcards(
     @Arg('classroomId') classroomId: string,
     @Ctx() ctx: ITokenContext,
-  ) {
+  ): Promise<iFlashcard[] | null> {
     const { user } = ctx;
-    console.log(user.id);
     const classroom = await ClassroomModel.findById(classroomId);
-
     if (!classroom) {
       throw new ApolloError('Classroom not found');
     }
 
     const allFlashcards = classroom.subject.reduce(
-      (flashcards: any, subject: any) => {
+      (flashcards: iFlashcard[], subject: iSubject) => {
         flashcards.push(...subject.flashcard);
         return flashcards;
       },
       [],
     );
 
-    return allFlashcards.map((f: any) => {
+    return allFlashcards.map((f: iFlashcard) => {
       const flashcard = f;
-      flashcard.subtitle = flashcard.subtitle.map((s: any) => {
+      flashcard.subtitle = flashcard.subtitle.map((s: iSubtitle) => {
         const subtitle = s;
         subtitle.paragraph = subtitle.paragraph.filter(
-          (p: any) => p.author === user.id || p.isPublic === true,
+          (p: iParagraph) => p.author === user.id || p.isPublic === true,
         );
         return subtitle;
       });
@@ -97,10 +162,8 @@ export default class FlashcardResolver {
     @Arg('flashcardId') flashcardId: string,
     @Arg('classroomId') classroomId: string,
     @Ctx() ctx: ITokenContext,
-  ) {
+  ): Promise<iFlashcard | null> {
     const { user } = ctx;
-    console.log(user.id);
-
     const classroom = await ClassroomModel.findOne(
       {
         _id: classroomId,
@@ -108,7 +171,7 @@ export default class FlashcardResolver {
           $elemMatch: { flashcard: { $elemMatch: { _id: flashcardId } } },
         },
       },
-      ['subject.flashcard.$'],
+      ['subject._id', 'subject.flashcard.$'],
     );
 
     if (!classroom) {
@@ -116,21 +179,20 @@ export default class FlashcardResolver {
     }
 
     const flashcard = classroom.subject[0].flashcard.filter(
-      (f: any) => f._id.toString() === flashcardId,
+      (f: iFlashcard) => f._id?.toString() === flashcardId,
     )[0];
 
-    flashcard.subtitle = flashcard.subtitle.map((s: any) => {
+    flashcard.subtitle = flashcard.subtitle.map((s: iSubtitle) => {
       const subtitle = s;
       subtitle.paragraph = subtitle.paragraph.filter(
-        (p: any) => p.author === user.id || p.isPublic === true,
+        (p: iParagraph) => p.author === user.id || p.isPublic === true,
       );
       return subtitle;
     });
+    flashcard.subjectId = classroom.subject[0]._id;
     return flashcard;
   }
 
-  // made for test and add quickly flashcard, return is not correct
-  // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   @Mutation(() => FlashcardModelGQL)
   public async createFlashcard(
     @Args()
@@ -141,60 +203,298 @@ export default class FlashcardResolver {
       ressource,
       tag,
       subtitle,
-    }: CreateFlahsCard,
-  ) {
-    if (
-      title === '' ||
-      tag.length === 0 ||
-      ressource.length === 0 ||
-      subtitle.length === 0
-    ) {
-      throw new ApolloError(
-        'title / tag / ressources / subtitles are required',
-      );
+    }: CreateFlashcard,
+  ): Promise<iFlashcard | null> {
+    if (!title.length) {
+      throw new ApolloError('Title is required');
     }
 
-    // Check if flashcard is exist, if yes throw error otherwise continu
+    // Check if flashcard with same title is exist, if yes throw error otherwise continu
     const isExistFlashcard = await ClassroomModel.findOne({
       _id: classroomId,
       subject: {
-        $elemMatch: { flashcard: { $elemMatch: { title } } },
+        $elemMatch: { subjectId, flashcard: { $elemMatch: { title } } },
       },
     });
     if (isExistFlashcard) {
-      throw new ApolloError('Flashcard already exist');
+      throw new ApolloError('Title Flashcard already exists');
     }
+    const newSubtitle: Array<{ [key: string]: string | number }> = [];
 
-    const newFlashCard = {
-      title,
-      tag,
-      subtitle,
-      ressource,
-    };
-
-    // On peut faire une projection sur l'objet crée mais pour avoir un objet imbirqué qu'on a crée comme dans ce cas il faudrait filtrer les résultat ...
-    // https://stackoverflow.com/questions/54082166/mongoose-return-only-updated-item-using-findoneandupdate-and-array-filters
+    subtitle?.forEach((sub, index) => {
+      newSubtitle.push({
+        title: sub.title,
+        position: index,
+      });
+    });
 
     try {
+
+      const newFlashCard = {
+        title,
+        tag,
+        subtitle: newSubtitle,
+        ressource,
+      };
+
+      let filterOptions; // will be dynamically changed, depends on if subject does exist or not
+      let pushOptions; // will be dynamically changed, depends on if subject does exist or not
+
+      // Check if subject does exist in classroom
+      const isExistSubject = await ClassroomModel.findOne({ _id: classroomId, subject: { $elemMatch: { subjectId } } });
+      
+      // if subject does exist in the classroom then add to it the newly created flashcard
+      if (isExistSubject) {
+        filterOptions = {
+          _id: classroomId,
+          subject: { $elemMatch: { subjectId } }
+        }
+        pushOptions = { 'subject.$.flashcard': newFlashCard }
+      }
+
+      // if subject does exist in the classroom then create a new subject object with the receivec subjectId
+      if (!isExistSubject) {
+        const newSubject = {
+          subjectId,
+          'flashcard': [newFlashCard]
+        };
+
+        filterOptions = { _id: classroomId }
+        pushOptions = { subject: newSubject }
+      }
+
       const classroom = await ClassroomModel.findOneAndUpdate(
-        { _id: classroomId, 'subject.subjectId': subjectId },
-        { $push: { 'subject.$.flashcard': newFlashCard } },
+        filterOptions,
+        { $push: pushOptions },
         {
           new: true,
-          projection: 'subject',
+          projection: { subject: { $elemMatch: { subjectId } } },
         },
       );
 
-      const updatedSubject = classroom.subject.filter(
-        (singleSubject: any) => singleSubject.subjectId === subjectId,
-      )[0];
-
-      const createdFlashcard = updatedSubject.flashcard.filter(
-        (singleFlashcard: any) => singleFlashcard.title === title,
-      )[0];
-      return createdFlashcard;
+      return (
+        classroom?.subject[0].flashcard.filter((f) => f.title === title)[0] ||
+        null
+      );
     } catch (error) {
       throw new ApolloError('Could not create flashcard');
+    }
+  }
+
+  @Mutation(() => FlashcardModelGQL)
+  public async updateFlashcard(
+    @Args()
+    {
+      classroomId,
+      subjectId,
+      flashcardId,
+      title,
+      ressource,
+      tag,
+      subtitle,
+    }: UpdateFlashcard,
+  ): Promise<iFlashcard | null> {
+    const updQuery: {
+      [key: string]: { [key: string]: string | string[] | unknown };
+    } = {
+      $push: {},
+      $set: {
+        ...(title ? { 'subject.$[s].flashcard.$[f].title': title } : {}),
+        ...(ressource
+          ? { 'subject.$[s].flashcard.$[f].ressource': ressource }
+          : {}),
+        ...(tag ? { 'subject.$[s].flashcard.$[f].tag': tag } : {}),
+      },
+    };
+    const filters: Array<{ [key: string]: string }> = [
+      { 's._id': subjectId },
+      { 'f._id': flashcardId },
+    ];
+
+    const newSubtitle: Array<{
+      [key: string]: string | number | iParagraph[];
+    }> = [];
+
+    const existingSubtitle = subtitle?.reduce((id: string[], sub) => {
+      if (sub.subtitleId) {
+        id.push(sub.subtitleId);
+      }
+      return id;
+    }, []);
+    const existingParagraph: { [key: string]: iParagraph[] } = {};
+    if (existingSubtitle?.length) {
+      try {
+        const classroom = await ClassroomModel.findOne(
+          {
+            _id: classroomId,
+            subject: {
+              $elemMatch: { flashcard: { $elemMatch: { _id: flashcardId } } },
+            },
+          },
+          ['subject.flashcard.$'],
+        );
+        classroom?.subject[0].flashcard
+          .filter((f) => f._id?.toString() === flashcardId)[0]
+          .subtitle.filter((s) =>
+            existingSubtitle.includes(s._id?.toString() || ''),
+          )
+          .forEach((s) => {
+            existingParagraph[s._id] = s.paragraph;
+          });
+      } catch (e) {
+        throw new ApolloError('Subtitle not found');
+      }
+    }
+    subtitle?.forEach((sub, index) => {
+      newSubtitle.push({
+        title: sub.title,
+        position: index,
+        paragraph: sub.subtitleId ? existingParagraph[sub.subtitleId] : [],
+      });
+    });
+    if (newSubtitle.length) {
+      updQuery.$set[`subject.$[s].flashcard.$[f].subtitle`] = newSubtitle;
+    }
+    try {
+      const classroom = await ClassroomModel.findOneAndUpdate(
+        {
+          _id: classroomId,
+        },
+        {
+          ...updQuery,
+        },
+        {
+          new: true,
+          upsert: true,
+          arrayFilters: [...filters],
+          projection: {
+            subject: { $elemMatch: { _id: subjectId } },
+          },
+        },
+      );
+
+      if (!classroom) {
+        throw new Error('Classroom not found');
+      }
+      return (
+        classroom.subject[0].flashcard.filter(
+          (f) => f._id?.toString() === flashcardId,
+        )[0] || null
+      );
+    } catch (e: any) {
+      throw new ApolloError(e?.message || 'Could not update flashcard');
+    }
+  }
+
+  @Mutation(() => FlashcardModelGQL)
+  public async updateFlashcardStudent(
+    @Args()
+    {
+      classroomId,
+      subjectId,
+      flashcardId,
+      subtitleId,
+      paragraph,
+      ressource,
+    }: UpdateFlashcardStudent,
+    @Ctx() ctx: ITokenContext,
+  ): Promise<iFlashcard | null> {
+    const { user } = ctx;
+
+    if (paragraph && !subtitleId) {
+      throw new ApolloError('SubtitleId is required for paragraph action');
+    }
+
+    const filters: Array<{ [key: string]: string }> = [
+      { 'sub._id': subjectId },
+      { 'flash._id': flashcardId },
+      { 'subt._id': subtitleId || '' },
+    ];
+    const updQuery: {
+      [key: string]: { [key: string]: string | string[] | unknown };
+    } = { $set: {}, $push: {} };
+
+    if (paragraph?.paragraphId) {
+      updQuery.$set[
+        'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph.$[par].isPublic'
+      ] = paragraph.isPublic ?? true;
+
+      if ('isValidate' in paragraph) {
+        updQuery.$set[
+          'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph.$[par].isValidate'
+        ] = paragraph.isValidate;
+      }
+
+      if ('text' in paragraph) {
+        updQuery.$set[
+          'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph.$[par].text'
+        ] = paragraph.text;
+        updQuery.$set[
+          'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph.$[par].author'
+        ] = user.id;
+        updQuery.$set[
+          'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph.$[par].isValidate'
+        ] = false;
+      }
+
+      filters.push({ 'par._id': paragraph.paragraphId });
+    } else {
+      if (paragraph) {
+        updQuery.$push[
+          'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph'
+        ] = {
+          text: paragraph.text,
+          isPublic: paragraph.isPublic || true,
+          author: user.id,
+          isValidate: false,
+          date: Date.now(),
+        };
+      }
+
+      if (ressource) {
+        updQuery.$push['subject.$[sub].flashcard.$[flash].ressource'] = {
+          name: ressource.name,
+          url: ressource.url,
+        };
+      }
+    }
+
+    try {
+      const classroom = await ClassroomModel.findOneAndUpdate(
+        {
+          _id: classroomId,
+        },
+        {
+          ...updQuery,
+        },
+        {
+          new: true,
+          upsert: true,
+          arrayFilters: [...filters],
+        },
+      );
+
+      if (!classroom) {
+        throw new Error('Classroom not found');
+      }
+      const flash = classroom.subject
+        .find((s) => s._id?.toString() === subjectId)
+        ?.flashcard.find((f) => f._id?.toString() === flashcardId);
+
+      if (!flash) {
+        throw new Error('Flashcard not found');
+      }
+
+      flash.subtitle.map((s) => {
+        const subtitle = s;
+        subtitle.paragraph = subtitle.paragraph.filter(
+          (p: iParagraph) => p.author === user.id || p.isPublic === true,
+        );
+        return subtitle;
+      });
+      return flash;
+    } catch (e: any) {
+      throw new ApolloError(e?.message || 'Could not update flashcard');
     }
   }
 }

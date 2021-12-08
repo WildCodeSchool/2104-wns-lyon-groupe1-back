@@ -1,9 +1,11 @@
-import { Query, Mutation, Resolver, Arg } from 'type-graphql';
+import { Query, Mutation, Resolver, Arg, Ctx } from 'type-graphql';
 import { ApolloError } from 'apollo-server-express';
 import userModel from '../model/user';
 import ClassroomModel from '../model/classroom';
 import ClassroomModelGQL from '../model/graphql/classroomModelGQL';
 import isMail from '../utils/isMail';
+import { iClassroom } from '../utils/types/classroomTypes';
+import { ITokenContext } from '../utils/interface';
 
 @Resolver(ClassroomModelGQL)
 export default class ClassroomResolver {
@@ -11,16 +13,20 @@ export default class ClassroomResolver {
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
   @Query(() => [ClassroomModelGQL])
-  public async getAllClassrooms() {
-    const classrooms = await ClassroomModel.find();
-    return classrooms;
+  public async getAllClassrooms(): Promise<iClassroom[] | null> {
+    try {
+      const classrooms = await ClassroomModel.find();
+      return classrooms;
+    }
+    catch {
+      throw new ApolloError("Error getting classrooms")
+    }
   }
-
   // get classroom
   // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
   @Query(() => ClassroomModelGQL)
-  public async getClassroom(@Arg('id') id: string) {
+  public async getClassroom(@Arg('id') id: string): Promise<iClassroom | null> {
     const classroom = await ClassroomModel.findOne({
       _id: id,
     });
@@ -37,7 +43,11 @@ export default class ClassroomResolver {
     @Arg('classroomName') classroomName: string,
     @Arg('academicYear') academicYear: string,
     @Arg('studentMails', () => [String]) studentMails: [string],
-  ) {
+    @Ctx() ctx: ITokenContext,
+  ): Promise<iClassroom | null> {
+
+    const { user } = ctx;
+
     if (!studentMails.length)
       throw new ApolloError(
         'Only one student mail is required to create a classroom.',
@@ -66,7 +76,7 @@ export default class ClassroomResolver {
 
     try {
       // create a new classroom with the wanted values
-      const newClassroom = await new ClassroomModel({
+      const newClassroom = new ClassroomModel({
         name: classroomName,
         year: academicYear,
         student: newStudents,
@@ -87,6 +97,20 @@ export default class ClassroomResolver {
           },
         );
       });
+
+      await userModel.findOneAndUpdate(
+        {_id : user.id},
+        {
+          $push: {
+            classroom: {
+              classroomId: newClassroom._id,
+              name: newClassroom.name,
+              year: newClassroom.year,
+            },
+          },
+        },
+      )
+
       // save classroom
       return await newClassroom.save();
     } catch (error) {
@@ -102,7 +126,7 @@ export default class ClassroomResolver {
   public async addStudentToClassroom(
     @Arg('studentMail') studentMail: string,
     @Arg('id') id: string,
-  ) {
+  ): Promise<iClassroom | null> {
     // =============================================
     // check if student exists and is not a teacher and student not in the classroom
     const student = await userModel.findOne({
@@ -129,19 +153,20 @@ export default class ClassroomResolver {
       { new: true },
     );
 
-    await userModel.findOneAndUpdate(
-      { _id: student._id },
-      {
-        $push: {
-          classroom: {
-            classroomId: id,
-            name: classRoom.name,
-            year: classRoom.year,
+    if (classRoom) {
+      await userModel.findOneAndUpdate(
+        { _id: student._id },
+        {
+          $push: {
+            classroom: {
+              classroomId: id,
+              name: classRoom.name,
+              year: classRoom.year,
+            },
           },
         },
-      },
-    );
-
+      );
+    }
     return classRoom;
   }
 }

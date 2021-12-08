@@ -1,4 +1,6 @@
-import { Field, ObjectType, ID, } from 'type-graphql';
+import { Field, ObjectType, ID } from 'type-graphql';
+
+
 
 @ObjectType()
 class Answer {
@@ -14,6 +16,9 @@ class Answer {
 
 @ObjectType()
 class Question {
+  @Field(() => ID)
+  id!: string;
+
   @Field()
   text!: string;
 
@@ -39,8 +44,12 @@ export abstract class Ressource {
   url!: string;
 }
 
+
 @ObjectType()
-class Paragraph {
+export abstract class Paragraph {
+  @Field(() => ID)
+  id!: string;
+
   @Field()
   text!: string;
 
@@ -57,8 +66,12 @@ class Paragraph {
   date!: Date;
 }
 
+
 @ObjectType()
 export abstract class Subtitle {
+  @Field(() => ID)
+  id! : string
+
   @Field()
   title!: string;
 
@@ -69,10 +82,14 @@ export abstract class Subtitle {
   paragraph!: Paragraph[];
 }
 
+
 @ObjectType()
 export default class FlashcardModelGQL {
   @Field(() => ID)
   id!: string;
+
+  @Field(() => ID)
+  subjectId!: string;
 
   @Field()
   title!: string;
