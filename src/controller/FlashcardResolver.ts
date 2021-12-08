@@ -228,17 +228,44 @@ export default class FlashcardResolver {
       });
     });
 
-    const newFlashCard = {
-      title,
-      tag,
-      subtitle: newSubtitle,
-      ressource,
-    };
-
     try {
+
+      const newFlashCard = {
+        title,
+        tag,
+        subtitle: newSubtitle,
+        ressource,
+      };
+
+      let filterOptions: any; // will be dynamically changed, depends on if subject does exist or not
+      let pushOptions: any; // will be dynamically changed, depends on if subject does exist or not
+
+      // Check if subject does exist in classroom
+      const isExistSubject = await ClassroomModel.findOne({ _id: classroomId, subject: { $elemMatch: { subjectId } } });
+      
+      // if subject does exist in the classroom then add to it the newly created flashcard
+      if (isExistSubject) {
+        filterOptions = {
+          _id: classroomId,
+          subject: { $elemMatch: { subjectId } }
+        }
+        pushOptions = { 'subject.$.flashcard': newFlashCard }
+      }
+
+      // if subject does exist in the classroom then create a new subject object with the receivec subjectId
+      if (!isExistSubject) {
+        const newSubject = {
+          subjectId,
+          'flashcard': [newFlashCard]
+        };
+
+        filterOptions = { _id: classroomId }
+        pushOptions = { subject: newSubject }
+      }
+
       const classroom = await ClassroomModel.findOneAndUpdate(
-        { _id: classroomId, subject: { $elemMatch: { subjectId } } },
-        { $push: { 'subject.$.flashcard': newFlashCard } },
+        filterOptions,
+        { $push: pushOptions },
         {
           new: true,
           projection: { subject: { $elemMatch: { subjectId } } },
