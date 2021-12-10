@@ -26,16 +26,8 @@ class CustomFlashcardModelGQL{
 
 @ObjectType()
 export class SubjectFlashcardModelGQL {
-    
-    // returned subjectId
     @Field(()=> ID)
     id! : string;
-
-    @Field()
-    imageUrl! : string;
-
-    @Field()
-    name! : string 
 
     @Field(() => [CustomFlashcardModelGQL])
     flashcard! : CustomFlashcardModelGQL[];

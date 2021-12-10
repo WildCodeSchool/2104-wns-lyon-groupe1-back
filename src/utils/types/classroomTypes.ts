@@ -8,6 +8,7 @@ export interface iParagraph {
 }
 
 export interface iRessource {
+  id: string;
   name: string;
   url: string;
 }
