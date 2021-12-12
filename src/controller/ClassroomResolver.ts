@@ -52,6 +52,15 @@ export default class ClassroomResolver {
       throw new ApolloError(
         'Only one student mail is required to create a classroom.',
       );
+
+
+    const splitAcademicYear = academicYear.split("/");
+    
+    if(Number(splitAcademicYear[1]) < Number(splitAcademicYear[0])){
+      throw new ApolloError("Academic year format is not correct")
+    }
+
+
     // make unique Mails
     // ==================================
     const studentMailsUnique = [...new Set(studentMails)];
