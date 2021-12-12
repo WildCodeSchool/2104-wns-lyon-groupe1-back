@@ -4,7 +4,7 @@ import userModel from '../model/user';
 import ClassroomModel from '../model/classroom';
 import ClassroomModelGQL from '../model/graphql/classroomModelGQL';
 import isMail from '../utils/isMail';
-import { iClassroom } from '../utils/types/classroomTypes';
+import { iClassroom, iStudent } from '../utils/types/classroomTypes';
 import { ITokenContext } from '../utils/interface';
 
 @Resolver(ClassroomModelGQL)
@@ -136,26 +136,36 @@ export default class ClassroomResolver {
     });
 
     if (!student) {
-      throw new ApolloError('Student does not exist');
+      throw new ApolloError('Student does not exist or already in the classroom');
     }
 
     if (!isMail(studentMail)) {
       throw new ApolloError('Email not in correct syntax ***@***.**');
     }
 
-    const classRoom = await ClassroomModel.findOneAndUpdate(
+    const newStudent : iStudent= {
+      firstname : student.firstname,
+      lastname : student.lastname,
+      userId : student.id,
+      mail : student.mail
+    }
+
+      const classRoom = await ClassroomModel.findOneAndUpdate(
       { _id: id },
       {
         $push: {
-          student: { ...student, userId: student._id },
+          student: newStudent,
         },
       },
       { new: true },
     );
 
+    console.log(classRoom)
+
+
     if (classRoom) {
       await userModel.findOneAndUpdate(
-        { _id: student._id },
+        { _id: student.id },
         {
           $push: {
             classroom: {
