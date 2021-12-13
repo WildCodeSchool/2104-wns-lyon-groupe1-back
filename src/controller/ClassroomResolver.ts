@@ -160,12 +160,9 @@ export default class ClassroomResolver {
       { new: true },
     );
 
-    console.log(classRoom)
-
-
     if (classRoom) {
       await userModel.findOneAndUpdate(
-        { _id: student.id },
+        { _id: student._id },
         {
           $push: {
             classroom: {
