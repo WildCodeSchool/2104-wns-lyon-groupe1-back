@@ -229,7 +229,6 @@ export default class FlashcardResolver {
     });
 
     try {
-
       const newFlashCard = {
         title,
         tag,
@@ -241,26 +240,29 @@ export default class FlashcardResolver {
       let pushOptions; // will be dynamically changed, depends on if subject does exist or not
 
       // Check if subject does exist in classroom
-      const isExistSubject = await ClassroomModel.findOne({ _id: classroomId, subject: { $elemMatch: { subjectId } } });
-      
+      const isExistSubject = await ClassroomModel.findOne({
+        _id: classroomId,
+        subject: { $elemMatch: { subjectId } },
+      });
+
       // if subject does exist in the classroom then add to it the newly created flashcard
       if (isExistSubject) {
         filterOptions = {
           _id: classroomId,
-          subject: { $elemMatch: { subjectId } }
-        }
-        pushOptions = { 'subject.$.flashcard': newFlashCard }
+          subject: { $elemMatch: { subjectId } },
+        };
+        pushOptions = { 'subject.$.flashcard': newFlashCard };
       }
 
       // if subject does exist in the classroom then create a new subject object with the receivec subjectId
       if (!isExistSubject) {
         const newSubject = {
           subjectId,
-          'flashcard': [newFlashCard]
+          flashcard: [newFlashCard],
         };
 
-        filterOptions = { _id: classroomId }
-        pushOptions = { subject: newSubject }
+        filterOptions = { _id: classroomId };
+        pushOptions = { subject: newSubject };
       }
 
       const classroom = await ClassroomModel.findOneAndUpdate(
@@ -271,11 +273,18 @@ export default class FlashcardResolver {
           projection: { subject: { $elemMatch: { subjectId } } },
         },
       );
-
-      return (
-        classroom?.subject[0].flashcard.filter((f) => f.title === title)[0] ||
-        null
-      );
+      if (!classroom) {
+        throw new Error('Error update');
+      }
+      const subId = classroom.subject[0]._id;
+      const flashcard = classroom.subject[0].flashcard.filter(
+        (f) => f.title === title,
+      )[0];
+      if (!flashcard) {
+        throw new Error('Error update');
+      }
+      flashcard.subjectId = subId;
+      return flashcard;
     } catch (error) {
       throw new ApolloError('Could not create flashcard');
     }
