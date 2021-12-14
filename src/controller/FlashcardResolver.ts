@@ -128,6 +128,7 @@ export default class FlashcardResolver {
   @Query(() => [FlashcardModelGQL])
   public async getAllFlashcards(
     @Arg('classroomId') classroomId: string,
+    @Arg('tag', (type) => [String], { nullable: true }) tag: string[],
     @Ctx() ctx: ITokenContext,
   ): Promise<iFlashcard[] | null> {
     const { user } = ctx;
@@ -138,13 +139,30 @@ export default class FlashcardResolver {
 
     const allFlashcards = classroom.subject.reduce(
       (flashcards: iFlashcard[], subject: iSubject) => {
-        flashcards.push(...subject.flashcard);
+        let flashes: iFlashcard[] = [];
+        if (tag) {
+          tag.forEach((t: string) => {
+            flashes = flashes.concat(
+              subject.flashcard.filter((f: iFlashcard) =>
+                f.tag.includes(t.trim()),
+              ),
+            );
+          });
+        } else {
+          flashes = subject.flashcard;
+        }
+        flashes = flashes.map((f) => {
+          const newFlash = f;
+          newFlash.subjectId = subject._id;
+          return newFlash;
+        });
+        flashcards.push(...flashes);
         return flashcards;
       },
       [],
     );
 
-    return allFlashcards.map((f: iFlashcard) => {
+    return [...new Set(allFlashcards)].map((f: iFlashcard) => {
       const flashcard = f;
       flashcard.subtitle = flashcard.subtitle.map((s: iSubtitle) => {
         const subtitle = s;
