@@ -42,6 +42,21 @@ class SubtitleInput {
   position!: number;
 }
 
+@InputType()
+class QuestionInput {
+  @Field()
+  text!: string;
+}
+
+@InputType()
+class AnswerInput {
+  @Field(() => ID)
+  questionId!: string;
+
+  @Field()
+  text!: string;
+}
+
 @ArgsType()
 class CreateFlashcard {
   @Field(() => ID)
@@ -121,6 +136,12 @@ class UpdateFlashcardStudent {
 
   @Field({ nullable: true })
   ressource?: RessourceInput;
+
+  @Field({ nullable: true })
+  question?: QuestionInput;
+
+  @Field({ nullable: true })
+  answer?: AnswerInput;
 }
 
 @Resolver(FlashcardModelGQL)
@@ -423,6 +444,8 @@ export default class FlashcardResolver {
       subtitleId,
       paragraph,
       ressource,
+      question,
+      answer,
     }: UpdateFlashcardStudent,
     @Ctx() ctx: ITokenContext,
   ): Promise<iFlashcard | null> {
@@ -466,24 +489,42 @@ export default class FlashcardResolver {
 
       filters.push({ 'par._id': paragraph.paragraphId });
     } else {
-      if (paragraph) {
-        updQuery.$push[
-          'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph'
-        ] = {
-          text: paragraph.text,
-          isPublic: paragraph.isPublic || true,
-          author: user.id,
-          isValidate: false,
-          date: Date.now(),
-        };
-      }
+      updQuery.$push[
+        'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph'
+      ] = {
+        text: paragraph?.text || '',
+        isPublic: paragraph?.isPublic || true,
+        author: user.id,
+        isValidate: false,
+        date: Date.now(),
+      };
+    }
 
-      if (ressource) {
-        updQuery.$push['subject.$[sub].flashcard.$[flash].ressource'] = {
-          name: ressource.name,
-          url: ressource.url,
-        };
-      }
+    if (ressource) {
+      updQuery.$push['subject.$[sub].flashcard.$[flash].ressource'] = {
+        name: ressource.name,
+        url: ressource.url,
+      };
+    }
+
+    if (question) {
+      updQuery.$push['subject.$[sub].flashcard.$[flash].question'] = {
+        text: question.text,
+        date: Date.now(),
+        author: user.id,
+      };
+    }
+
+    if (answer) {
+      updQuery.$push[
+        'subject.$[sub].flashcard.$[flash].question.$[question].answer'
+      ] = {
+        text: answer.text,
+        date: Date.now(),
+        author: user.id,
+      };
+
+      filters.push({ 'question._id': answer.questionId });
     }
 
     try {
