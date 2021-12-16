@@ -458,7 +458,6 @@ export default class FlashcardResolver {
     const filters: Array<{ [key: string]: string }> = [
       { 'sub._id': subjectId },
       { 'flash._id': flashcardId },
-      { 'subt._id': subtitleId || '' },
     ];
     const updQuery: {
       [key: string]: { [key: string]: string | string[] | unknown };
@@ -487,8 +486,11 @@ export default class FlashcardResolver {
         ] = false;
       }
 
-      filters.push({ 'par._id': paragraph.paragraphId });
-    } else {
+      filters.push(
+        { 'par._id': paragraph.paragraphId },
+        { 'subt._id': subtitleId || '' },
+      );
+    } else if (paragraph){
       updQuery.$push[
         'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph'
       ] = {
@@ -498,6 +500,7 @@ export default class FlashcardResolver {
         isValidate: false,
         date: Date.now(),
       };
+      filters.push({ 'subt._id': subtitleId || '' });
     }
 
     if (ressource) {
@@ -526,7 +529,8 @@ export default class FlashcardResolver {
 
       filters.push({ 'question._id': answer.questionId });
     }
-
+    console.log(updQuery);
+    console.log(filters);
     try {
       const classroom = await ClassroomModel.findOneAndUpdate(
         {
