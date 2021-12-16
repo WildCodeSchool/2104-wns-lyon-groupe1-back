@@ -490,11 +490,14 @@ export default class FlashcardResolver {
         { 'par._id': paragraph.paragraphId },
         { 'subt._id': subtitleId || '' },
       );
-    } else if (paragraph){
+    } else if (
+      paragraph &&
+      (paragraph.text || paragraph.isPublic !== undefined)
+    ) {
       updQuery.$push[
         'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph'
       ] = {
-        text: paragraph?.text || '',
+        text: paragraph.text || '',
         isPublic: paragraph?.isPublic || true,
         author: user.id,
         isValidate: false,
