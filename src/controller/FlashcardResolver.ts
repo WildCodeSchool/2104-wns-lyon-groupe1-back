@@ -42,6 +42,21 @@ class SubtitleInput {
   position!: number;
 }
 
+@InputType()
+class QuestionInput {
+  @Field()
+  text!: string;
+}
+
+@InputType()
+class AnswerInput {
+  @Field(() => ID)
+  questionId!: string;
+
+  @Field()
+  text!: string;
+}
+
 @ArgsType()
 class CreateFlashcard {
   @Field(() => ID)
@@ -121,6 +136,12 @@ class UpdateFlashcardStudent {
 
   @Field({ nullable: true })
   ressource?: RessourceInput;
+
+  @Field({ nullable: true })
+  question?: QuestionInput;
+
+  @Field({ nullable: true })
+  answer?: AnswerInput;
 }
 
 @Resolver(FlashcardModelGQL)
@@ -128,6 +149,7 @@ export default class FlashcardResolver {
   @Query(() => [FlashcardModelGQL])
   public async getAllFlashcards(
     @Arg('classroomId') classroomId: string,
+    @Arg('tag', (type) => [String], { nullable: true }) tag: string[],
     @Ctx() ctx: ITokenContext,
   ): Promise<iFlashcard[] | null> {
     const { user } = ctx;
@@ -138,13 +160,30 @@ export default class FlashcardResolver {
 
     const allFlashcards = classroom.subject.reduce(
       (flashcards: iFlashcard[], subject: iSubject) => {
-        flashcards.push(...subject.flashcard);
+        let flashes: iFlashcard[] = [];
+        if (tag) {
+          tag.forEach((t: string) => {
+            flashes = flashes.concat(
+              subject.flashcard.filter((f: iFlashcard) =>
+                f.tag.includes(t.trim()),
+              ),
+            );
+          });
+        } else {
+          flashes = subject.flashcard;
+        }
+        flashes = flashes.map((f) => {
+          const newFlash = f;
+          newFlash.subjectId = subject._id;
+          return newFlash;
+        });
+        flashcards.push(...flashes);
         return flashcards;
       },
       [],
     );
 
-    return allFlashcards.map((f: iFlashcard) => {
+    return [...new Set(allFlashcards)].map((f: iFlashcard) => {
       const flashcard = f;
       flashcard.subtitle = flashcard.subtitle.map((s: iSubtitle) => {
         const subtitle = s;
@@ -405,6 +444,8 @@ export default class FlashcardResolver {
       subtitleId,
       paragraph,
       ressource,
+      question,
+      answer,
     }: UpdateFlashcardStudent,
     @Ctx() ctx: ITokenContext,
   ): Promise<iFlashcard | null> {
@@ -417,7 +458,6 @@ export default class FlashcardResolver {
     const filters: Array<{ [key: string]: string }> = [
       { 'sub._id': subjectId },
       { 'flash._id': flashcardId },
-      { 'subt._id': subtitleId || '' },
     ];
     const updQuery: {
       [key: string]: { [key: string]: string | string[] | unknown };
@@ -446,28 +486,51 @@ export default class FlashcardResolver {
         ] = false;
       }
 
-      filters.push({ 'par._id': paragraph.paragraphId });
-    } else {
-      if (paragraph) {
-        updQuery.$push[
-          'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph'
-        ] = {
-          text: paragraph.text,
-          isPublic: paragraph.isPublic || true,
-          author: user.id,
-          isValidate: false,
-          date: Date.now(),
-        };
-      }
-
-      if (ressource) {
-        updQuery.$push['subject.$[sub].flashcard.$[flash].ressource'] = {
-          name: ressource.name,
-          url: ressource.url,
-        };
-      }
+      filters.push(
+        { 'par._id': paragraph.paragraphId },
+        { 'subt._id': subtitleId || '' },
+      );
+    } else if (paragraph && paragraph.text) {
+      updQuery.$push[
+        'subject.$[sub].flashcard.$[flash].subtitle.$[subt].paragraph'
+      ] = {
+        text: paragraph.text || '',
+        isPublic: paragraph?.isPublic || true,
+        author: user.id,
+        isValidate: false,
+        date: Date.now(),
+      };
+      filters.push({ 'subt._id': subtitleId || '' });
     }
 
+    if (ressource) {
+      updQuery.$push['subject.$[sub].flashcard.$[flash].ressource'] = {
+        name: ressource.name,
+        url: ressource.url,
+      };
+    }
+
+    if (question) {
+      updQuery.$push['subject.$[sub].flashcard.$[flash].question'] = {
+        text: question.text,
+        date: Date.now(),
+        author: user.id,
+      };
+    }
+
+    if (answer) {
+      updQuery.$push[
+        'subject.$[sub].flashcard.$[flash].question.$[question].answer'
+      ] = {
+        text: answer.text,
+        date: Date.now(),
+        author: user.id,
+      };
+
+      filters.push({ 'question._id': answer.questionId });
+    }
+    console.log(updQuery);
+    console.log(filters);
     try {
       const classroom = await ClassroomModel.findOneAndUpdate(
         {
