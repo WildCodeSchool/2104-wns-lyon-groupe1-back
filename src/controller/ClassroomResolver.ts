@@ -48,6 +48,10 @@ export default class ClassroomResolver {
 
     const { user } = ctx;
 
+    if (!user.isTeacher) {
+      throw new ApolloError('You are not a teacher');
+    }
+
     if (!studentMails.length)
       throw new ApolloError(
         'Only one student mail is required to create a classroom.',
@@ -126,7 +130,13 @@ export default class ClassroomResolver {
   public async addStudentToClassroom(
     @Arg('studentMail') studentMail: string,
     @Arg('id') id: string,
+    @Ctx() ctx: ITokenContext,
   ): Promise<iClassroom | null> {
+    const { user } = ctx;
+
+    if (!user.isTeacher) {
+      throw new ApolloError('You are not a teacher');
+    }
     // =============================================
     // check if student exists and is not a teacher and student not in the classroom
     const student = await userModel.findOne({

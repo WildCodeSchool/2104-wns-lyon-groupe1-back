@@ -250,7 +250,14 @@ export default class FlashcardResolver {
       tag,
       subtitle,
     }: CreateFlashcard,
+    @Ctx() ctx: ITokenContext,
   ): Promise<iFlashcard | null> {
+    const { user } = ctx;
+
+    if (!user.isTeacher) {
+      throw new ApolloError('You are not a teacher');
+    }
+
     if (!title.length) {
       throw new ApolloError('Title is required');
     }
@@ -348,7 +355,14 @@ export default class FlashcardResolver {
       tag,
       subtitle,
     }: UpdateFlashcard,
+    @Ctx() ctx: ITokenContext,
   ): Promise<iFlashcard | null> {
+    const { user } = ctx;
+
+    if (!user.isTeacher) {
+      throw new ApolloError('You are not a teacher');
+    }
+
     const updQuery: {
       [key: string]: { [key: string]: string | string[] | unknown };
     } = {
@@ -457,6 +471,10 @@ export default class FlashcardResolver {
     @Ctx() ctx: ITokenContext,
   ): Promise<iFlashcard | null> {
     const { user } = ctx;
+
+    if (user.isTeacher) {
+      throw new ApolloError('You are not a student');
+    }
 
     if (paragraph && !subtitleId) {
       throw new ApolloError('SubtitleId is required for paragraph action');

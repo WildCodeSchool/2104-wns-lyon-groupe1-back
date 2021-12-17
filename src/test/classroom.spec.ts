@@ -75,7 +75,7 @@ describe('classroom integration testing', () => {
     const newUserTeacher = new userModel({
       mail: mockTeacher.mail,
       password: mockTeacher.passwordHashed,
-      isTeacher: false,
+      isTeacher: true,
     });
     await newUserTeacher.save();
     const response = await apollo.executeOperation({
@@ -204,9 +204,12 @@ describe('classroom integration testing', () => {
     });
     await insertedStudent.save();
 
-    const response = await apollo.executeOperation({
-      query: ADD_STUDENT_TO_CLASSROOM,
-    });
+    const response = await apollo.executeOperation(
+      {
+        query: ADD_STUDENT_TO_CLASSROOM,
+      },
+      { req: { headers: { authorization: token } } },
+    );
 
     expect(response.errors).toBeUndefined();
     expect(response.data).toBeDefined();
