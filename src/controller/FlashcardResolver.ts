@@ -192,6 +192,13 @@ export default class FlashcardResolver {
         );
         return subtitle;
       });
+      let allDates = flashcard.question.reduce((dates: Date[], question) => {
+        const answerDate = question.answer.map((a) => a.date);
+        dates.push(...answerDate);
+        return dates;
+      }, []);
+      allDates = [...new Set(allDates.sort((a, b) => (a < b ? 1 : -1)))];
+      flashcard.dateLastAnswer = allDates[0]?.toISOString();
       return flashcard;
     });
   }

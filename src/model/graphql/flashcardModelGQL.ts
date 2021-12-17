@@ -86,7 +86,10 @@ export default class FlashcardModelGQL {
   @Field(() => ID)
   id!: string;
 
-  @Field(() => ID, {nullable: true})
+  @Field({ nullable: true })
+  dateLastAnswer?: string;
+
+  @Field(() => ID, { nullable: true })
   subjectId?: string;
 
   @Field()
