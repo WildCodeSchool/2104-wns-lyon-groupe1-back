@@ -39,6 +39,7 @@ export interface iFlashcard {
   subjectId?: string;
   title: string;
   tag: string[];
+  dateLastAnswer?: string;
   subtitle: iSubtitle[];
   ressource: iRessource[];
   question: iQuestion[];
