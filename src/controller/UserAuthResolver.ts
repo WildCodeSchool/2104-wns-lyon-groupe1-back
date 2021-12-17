@@ -42,6 +42,31 @@ export default class UserAuthResolver {
     }
   }
 
+  @Mutation(() => String)
+  public async resetPassword(
+    @Arg('mail') mail: string,
+    @Ctx() ctx: ITokenContext,
+  ): Promise<string> {
+    const { user } = ctx;
+
+    if (!user.id || !user.isTeacher) {
+      throw new Error('401 - Unauthorized');
+    }
+
+    try {
+      const hashedPassword = await bcrypt.hash('MonNouveauPassword145!', 14);
+      const userInfo = await UserModel.findOneAndUpdate(
+        { mail },
+        { $set: { password: hashedPassword } },
+      );
+      if (!userInfo) throw new Error();
+    } catch {
+      throw new ApolloError('Cannot reset password');
+    }
+
+    return 'MonNouveauPassword145!';
+  }
+
   @Mutation(() => UserModelGQL)
   public async login(
     @Arg('mail') mail: string,
@@ -93,8 +118,8 @@ export default class UserAuthResolver {
         config.token,
       );
 
-      const userWithoutPassword: Partial<iUser> = { 
-        ...userInfo.toObject() 
+      const userWithoutPassword: Partial<iUser> = {
+        ...userInfo.toObject(),
       };
       userWithoutPassword.token = userToken;
       userWithoutPassword.id = userInfo._id;
